@@ -1,24 +1,28 @@
 /* eslint-disable react/no-unescaped-entities */
 
 import { useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate,NavLink, redirect } from "react-router-dom";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [passVisible, setPassVisible] = useState(false);
   const navigate=useNavigate();
   function handleSign(){
     navigate('/signup');
   }
   const handleLogin = (e) => {
     e.preventDefault();
+    navigate(redirect('/task'));
     // Add login logic here
-    alert(`Logging in with Username: ${username}, Password: ${password}`);
+    
   };
 
   return (
   
     
-    <div className="min-h-screen bg-white flex items-center justify-center">
+    <div className="min-h-screen bg-gray-300 flex items-center justify-center">
       <form 
         onSubmit={handleLogin} 
         className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 p-8 rounded-lg shadow-lg w-full max-w-sm"
@@ -28,7 +32,7 @@ function Login() {
         {/* Username Field */}
         <div className="mb-6">
           <label className="block text-white text-sm font-semibold mb-2" htmlFor="username">
-            Username
+            Username <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -44,10 +48,11 @@ function Login() {
         {/* Password Field */}
         <div className="mb-6">
           <label className="block text-white text-sm font-semibold mb-2" htmlFor="password">
-            Password
+            Password <span className="text-red-500">*</span>
           </label>
+          <div className='relative'>
           <input
-            type="password"
+            type={passVisible?"text":"password"}
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -55,6 +60,15 @@ function Login() {
             placeholder="Enter your password"
             required
           />
+          <span className='absolute top-1/2 right-3 -translate-y-1/2'> 
+            <FontAwesomeIcon
+              icon={passVisible ? faEye : faEyeSlash}
+              className="cursor-pointer"
+              onClick={() => setPassVisible(!passVisible)}
+            />
+          </span>
+          </div>
+          
         </div>
 
         {/* Login Button */}

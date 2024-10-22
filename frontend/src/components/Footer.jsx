@@ -1,4 +1,4 @@
-
+import { NavLink } from "react-router-dom";
 
 function Footer() {
   return (
@@ -15,12 +15,12 @@ function Footer() {
         {/* Useful Links */}
         <div>
           <h2 className="text-xl font-semibold mb-4">Useful Links</h2>
-          <ul>
-            <li className="mb-2 hover:text-gray-300 cursor-pointer">About Us</li>
-            <li className="mb-2 hover:text-gray-300 cursor-pointer">Features</li>
-            <li className="mb-2 hover:text-gray-300 cursor-pointer">Pricing</li>
-            <li className="mb-2 hover:text-gray-300 cursor-pointer">Contact</li>
-          </ul>
+          <div className="flex flex-col">
+            <NavLink to={"/about"} className="mb-2 hover:text-gray-300 cursor-pointer">About Us</NavLink>
+            <NavLink to={"/services"} className="mb-2 hover:text-gray-300 cursor-pointer">Features</NavLink>
+            <NavLink to={"/"} className="mb-2 hover:text-gray-300 cursor-pointer">Pricing</NavLink>
+            <NavLink to={"/contact"} className="mb-2 hover:text-gray-300 cursor-pointer">Contact</NavLink>
+          </div>
         </div>
 
         {/* Subscribe */}
@@ -36,6 +36,7 @@ function Footer() {
             <button 
               type="submit" 
               className="bg-blue-500 text-white p-2 rounded-r hover:bg-blue-600 focus:outline-none"
+              onClick={() => alert("Subscribed!")}
             >
               Subscribe
             </button>

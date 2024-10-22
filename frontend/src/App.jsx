@@ -9,6 +9,7 @@ import Contact from './pages/Contact';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import SignUp from './components/SignUp';
+import TaskCreation from './authentication/TaskCreation';
 function App() {
   return (
     <BrowserRouter>
@@ -16,8 +17,10 @@ function App() {
       <Routes>
                 <Route path='/signup' element={<SignUp/>}/>
                 <Route path="/" element={<Layout/>}/>
+                
                 <Route index element={<Home/>}/>
                 <Route path='/login' element={<Login/>}/>
+                <Route path='/task' element={<TaskCreation/>}/>
                 <Route path='/about' element={<AboutUs/>}/>
                 <Route path='/services' element={<Services/>}/>
                 <Route path='/contact' element={<Contact/>}/>
