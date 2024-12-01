@@ -4,11 +4,12 @@ import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 
 function SignUp() {
+ 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+
   const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
+  const [user_id, setUser_id] = useState('');
   const [passVisible, setPassVisible] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passErr, setPassErr] = useState('');
@@ -55,10 +56,11 @@ function SignUp() {
 
     try {
       // Send POST request to backend
-      const response = await axios.post('http://localhost:5000/api/signup', {
+     const response= await axios.post('/api/auth/register', {
+        user_id,
         name,
         email,
-        username,
+     
         password,
       });
 
@@ -67,8 +69,7 @@ function SignUp() {
         // Clear form
         setName('');
         setEmail('');
-        setPhone('');
-        setUsername('');
+        setUser_id('');
         setPassword('');
         setConfirmPassword('');
       }
@@ -110,17 +111,17 @@ function SignUp() {
           required
         />
         
-        {/* Username */}
+        {/*user_id */}
         <label className="block mb-2 text-bold text-white">
-          Username <span className="text-red-500">*</span>
+        username <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
-          id="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          id="user_id"
+          value={user_id}
+          onChange={(e) => setUser_id(e.target.value)}
           className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
-          placeholder="Enter your username"
+          placeholder="Enter youruser_id"
           required
         />
         
@@ -202,7 +203,7 @@ function SignUp() {
           Sign Up
         </button>
         {passErr && <p style={{ color: 'red', marginTop: '10px' }}>{passErr}</p>}
-        {validationError && <p style={{ color: 'red', marginTop: '10px' }}>{validationError}</p>}
+        {/* {validationError && <p style={{ color: 'red', marginTop: '10px' }}>{validationError}</p>} */}
         <p className="mt-4">If you already have an account, please <a href="/login" className="text-white">Login</a></p>
       </form>
     </div>

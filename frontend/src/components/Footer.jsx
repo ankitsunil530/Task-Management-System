@@ -18,7 +18,7 @@ function Footer() {
           <div className="flex flex-col">
             <NavLink to={"/about"} className="mb-2 hover:text-gray-300 cursor-pointer">About Us</NavLink>
             <NavLink to={"/services"} className="mb-2 hover:text-gray-300 cursor-pointer">Features</NavLink>
-            <NavLink to={"/"} className="mb-2 hover:text-gray-300 cursor-pointer">Pricing</NavLink>
+            <NavLink to={"/dashboard"} className="mb-2 hover:text-gray-300 cursor-pointer">Pricing</NavLink>
             <NavLink to={"/contact"} className="mb-2 hover:text-gray-300 cursor-pointer">Contact</NavLink>
           </div>
         </div>
