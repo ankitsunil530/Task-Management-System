@@ -128,7 +128,7 @@ export const editTask = (req, res) => {
 }
 
 export const getPendingTasks = (req, res) => {
-    const { userId } = req.user; // Get logged-in user's ID from the token
+    const  userId  = req.user.id; // Get logged-in user's ID from the token
     console.log('Fetching pending tasks for userId:', userId); // Log userId
   
     // Query to get pending tasks
@@ -151,31 +151,32 @@ export const getPendingTasks = (req, res) => {
   
 
   export const getCompletedTasks = (req, res) => {
-    const { userId } = req.user;
+    const  userId  = req.user.id;
     const query = 'SELECT * FROM tasks WHERE user_id = ? AND status = "completed"';
   
     db.query(query, [userId], (err, results) => {
       if (err) {
         return res.status(500).json({ error: 'Failed to fetch completed tasks' });
       }
-      res.json(results[0]);
+      res.json(results);
     });
   };
   export const getAllUserTasks = (req, res) => {
-    const { userId } = req.user; 
+    const userId  = req.user.id; // Ensure `req.user` is populated by middleware
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is missing from the request.' });
+    }
+  
     const query = 'SELECT * FROM tasks WHERE user_id = ?';
     console.log('Fetching tasks for userId:', userId);
+  
     db.query(query, [userId], (err, results) => {
       if (err) {
         console.error('Error fetching tasks:', err);
         return res.status(500).json({ error: 'Failed to fetch tasks' });
       }
-  
-      if (results.length === 0) {
-        return res.status(404).json({ message: 'No tasks found for this user.' });
-      }
-  
-      res.json(results); 
+      console.log('Fetching tasks for userId:', results);
+      res.status(200).json( results ); // Return consistent format
     });
   };
   

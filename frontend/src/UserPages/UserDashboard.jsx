@@ -23,7 +23,7 @@ const UserDashboard = () => {
   };
   const fetchUserTasks = async () => {
     try {
-      const response = await axios.get('/api/tasks/idtask', {
+      const response = await axios.get('/api/tasks/usertsk', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },

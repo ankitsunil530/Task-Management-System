@@ -11,5 +11,5 @@ router.delete('/delete/:id',deleteTask);
 router.put('/edit/:id',editTask);
 router.get('/pending',getPendingTasks);
 router.get('/completed',getCompletedTasks);
-router.get('/idtask',getAllUserTasks);
+router.get('/usertsk',getAllUserTasks);
 export default router;
