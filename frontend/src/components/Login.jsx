@@ -1,9 +1,9 @@
-import { useContext, useState } from 'react';
+import {  useState } from 'react';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+
 
 function Login() {
   const [inputs, setInputs] = useState({
@@ -14,7 +14,7 @@ function Login() {
   const [error, setError] = useState('');
   const [passVisible, setPassVisible] = useState(false);
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
+  
 
   const handleInputChange = (e) => {
     setInputs((prev) => ({ ...prev, [e.target.name]: e.target.value }));
