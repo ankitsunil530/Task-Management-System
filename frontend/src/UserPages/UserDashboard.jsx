@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { AuthContext } from '../context/AuthContext'; 
+
 
 const UserDashboard = () => {
   const [userData, setUserData] = useState([]); 

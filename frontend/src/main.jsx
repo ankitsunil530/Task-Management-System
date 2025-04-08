@@ -15,7 +15,7 @@ import UserDashboard from './UserPages/UserDashboard.jsx'
 import TaskCreation from './UserPages/TaskCreate.jsx'
 import Tasks from './UserPages/Tasks.jsx'
 import AdminDashboard from './adminpanel/AdminDashboard.jsx'
-import { AuthContextProvider } from './context/authContext.jsx'
+
 const router=createBrowserRouter([
   {
     path:'/',
@@ -79,9 +79,9 @@ const router=createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <AuthContextProvider>
+    
     <RouterProvider router={router}/>
-    </AuthContextProvider>
+   
   
    
   </StrictMode>,
