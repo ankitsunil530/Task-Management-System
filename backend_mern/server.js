@@ -11,7 +11,10 @@ const app = express();
 app.get('/',(req,res)=>{
      res.send("Welcome to the backend server")
 })
-
+app.get('/test',(req,res)=>{
+     res.send("Welcome to the backend server tester")
+     
+})
 const port = process.env.PORT || 5000;
 connectDB();
 
