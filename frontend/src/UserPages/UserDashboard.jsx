@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-
+import { toast } from 'react-toastify';
+import { useDispatch } from 'react-redux';
+import { logoutUser } from '../redux/userSlice';
 
 const UserDashboard = () => {
   const [userData, setUserData] = useState([]); 
   const [profilePic, setProfilePic] = useState(null);
   const [tasks, setTasks] = useState([]);
-  
+  const dispatch = useDispatch(); // Assuming you have a Redux store set up
   const fetchUserData = async () => {
     try {
       const response = await axios.get('/api/tasks/userid', {
@@ -44,20 +46,10 @@ const UserDashboard = () => {
     console.log(userData);
   }, [userData]);
   const logout = async () => {
-    try {
-      
-      await axios.post('/api/auth/logout', {}, {
-        withCredentials: true, 
-      });
-  
-      
-      localStorage.removeItem('token');
-  
-      
-      window.location.href = '/login'; 
-    } catch (error) {
-      console.error("Error logging out", error);
-    }
+    dispatch(logoutUser());
+    localStorage.removeItem('token');
+    toast.success('Logout successful!');
+    window.location.href = '/login';
   };
   if (!userData) {
     return <div className="min-h-screen flex justify-center items-center">Loading...</div>;

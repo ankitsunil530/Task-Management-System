@@ -1,18 +1,20 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { registerUser } from '../redux/userSlice';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function SignUp() {
- 
+  const dispatch = useDispatch();
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-
-  const [password, setPassword] = useState('');
   const [user_id, setUser_id] = useState('');
-  const [passVisible, setPassVisible] = useState(false);
+  const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [passErr, setPassErr] = useState('');
+  const [passVisible, setPassVisible] = useState(false);
   const [validationError, setValidationError] = useState('');
 
   const validatePassword = (password) => {
@@ -44,7 +46,6 @@ function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate password
     const validationMessage = validatePassword(password);
     if (validationMessage) {
       setValidationError(validationMessage);
@@ -54,39 +55,24 @@ function SignUp() {
       return;
     }
 
-    try {
-      // Send POST request to backend
-     const response= await axios.post('/api/auth/register', {
-        user_id,
-        name,
-        email,
-     
-        password,
-      });
+    setValidationError('');
 
-      if (response.status === 201) {
-        alert('Sign up successful');
-        // Clear form
-        setName('');
-        setEmail('');
-        setUser_id('');
-        setPassword('');
-        setConfirmPassword('');
+    try {
+      const resultAction = await dispatch(
+        registerUser({ name, user_id, email, password })
+      );
+
+      if (registerUser.fulfilled.match(resultAction)) {
+        toast.success('Registration successful! 🎉');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      } else {
+        throw new Error(resultAction.payload || 'Registration failed');
       }
     } catch (error) {
-      console.error('There was an error signing up:', error);
-      setValidationError('Failed to sign up. Please try again.');
+      toast.error(error.message || 'Something went wrong');
     }
-  };
-
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-    if (passErr) setPassErr('');
-  };
-
-  const handleConfirmPasswordChange = (e) => {
-    setConfirmPassword(e.target.value);
-    if (passErr) setPassErr('');
   };
 
   return (
@@ -96,115 +82,103 @@ function SignUp() {
         className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 p-8 rounded-lg shadow-lg w-full max-w-sm"
       >
         <h2 className="text-3xl font-bold text-center text-white mb-8">Sign Up</h2>
-        
+
         {/* Full Name */}
-        <label className="block mb-2 text-bold text-white">
+        <label className="block mb-2 font-bold text-white">
           Full Name <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
-          id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
           placeholder="Enter your name"
           required
         />
-        
-        {/*user_id */}
-        <label className="block mb-2 text-bold text-white">
-        username <span className="text-red-500">*</span>
+
+        {/* Username */}
+        <label className="block mt-4 mb-2 font-bold text-white">
+          Username <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
-          id="user_id"
           value={user_id}
           onChange={(e) => setUser_id(e.target.value)}
           className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
-          placeholder="Enter youruser_id"
+          placeholder="Enter your username"
           required
         />
-        
+
         {/* Email */}
-        <label className="block mb-2 text-bold text-white">
+        <label className="block mt-4 mb-2 font-bold text-white">
           Email <span className="text-red-500">*</span>
         </label>
         <input
-          className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
-          type="text"
-          id="email"
+          type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
           placeholder="Enter your email"
           required
         />
-        
-        {/* Phone */}
-        {/* <label className="block mb-2 text-bold text-white mt-1">
-          Phone <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
-          id="phone"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="Enter your phone number"
-          required
-        /> */}
-        
+
         {/* Password */}
-        <label className="block mb-2 text-bold text-white mt-1">
+        <label className="block mt-4 mb-2 font-bold text-white">
           Password <span className="text-red-500">*</span>
         </label>
         <div className="relative">
           <input
             type={passVisible ? 'text' : 'password'}
-            id="password"
             value={password}
-            onChange={handlePasswordChange}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
             placeholder="Enter your password"
             required
           />
-          <span>
-            <FontAwesomeIcon
-              icon={passVisible ? faEye : faEyeSlash}
-              className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer"
-              onClick={() => setPassVisible(!passVisible)}
-            />
-          </span>
+          <FontAwesomeIcon
+            icon={passVisible ? faEye : faEyeSlash}
+            className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-white"
+            onClick={() => setPassVisible(!passVisible)}
+          />
         </div>
-        
+
         {/* Confirm Password */}
-        <label className="block mb-2 text-bold text-white mt-1">
+        <label className="block mt-4 mb-2 font-bold text-white">
           Confirm Password <span className="text-red-500">*</span>
         </label>
         <div className="relative">
           <input
             type={passVisible ? 'text' : 'password'}
-            id="confirmPassword"
             value={confirmPassword}
-            onChange={handleConfirmPasswordChange}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
             placeholder="Confirm your password"
             required
           />
-          <span>
-            <FontAwesomeIcon
-              icon={passVisible ? faEye : faEyeSlash}
-              className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer"
-              onClick={() => setPassVisible(!passVisible)}
-            />
-          </span>
+          <FontAwesomeIcon
+            icon={passVisible ? faEye : faEyeSlash}
+            className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-white"
+            onClick={() => setPassVisible(!passVisible)}
+          />
         </div>
-        
-        <button type="submit" className="w-full mt-4 p-3 bg-blue-500 text-white rounded-lg">
+
+        {/* Validation Error */}
+        {validationError && (
+          <p className="mt-2 text-red-200 text-sm text-center">{validationError}</p>
+        )}
+
+        <button
+          type="submit"
+          className="w-full mt-6 p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
           Sign Up
         </button>
-        {passErr && <p style={{ color: 'red', marginTop: '10px' }}>{passErr}</p>}
-        {/* {validationError && <p style={{ color: 'red', marginTop: '10px' }}>{validationError}</p>} */}
-        <p className="mt-4">If you already have an account, please <a href="/login" className="text-white">Login</a></p>
+
+        <p className="mt-4 text-white text-center">
+          Already have an account? <a href="/login" className="underline">Login</a>
+        </p>
+
+        <ToastContainer position="top-center" />
       </form>
     </div>
   );
