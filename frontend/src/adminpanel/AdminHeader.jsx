@@ -2,23 +2,16 @@ import axios from 'axios';
 import React from 'react';
 import { FaUserCircle, FaCog } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-
+import { logoutUser } from '../redux/userSlice';
+import { toast } from 'react-toastify';
+import { useDispatch } from 'react-redux';
 const AdminHeader = () => {
+  const dispatch = useDispatch();
   const logout = async () => {
-    try {
-      
-      await axios.post('/api/auth/logout', {}, {
-        withCredentials: true, 
-      });
-  
-      
-      localStorage.removeItem('token');
-  
-      
-      window.location.href = '/login'; 
-    } catch (error) {
-      console.error("Error logging out", error);
-    }
+    dispatch(logoutUser());
+        localStorage.removeItem('token');
+        toast.success('Logout successful!');
+        window.location.href = '/login';
   };
   return (
     <header className="bg-blue-600 shadow-md p-4 flex justify-between items-center">

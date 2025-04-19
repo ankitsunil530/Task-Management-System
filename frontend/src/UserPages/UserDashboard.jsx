@@ -5,24 +5,22 @@ import { useDispatch } from 'react-redux';
 import { logoutUser } from '../redux/userSlice';
 
 const UserDashboard = () => {
-  const [userData, setUserData] = useState([]); 
+  const [userData, setUserData] = useState(null);
   const [profilePic, setProfilePic] = useState(null);
   const [tasks, setTasks] = useState([]);
-  const dispatch = useDispatch(); // Assuming you have a Redux store set up
+  const dispatch = useDispatch();
+
   const fetchUserData = async () => {
-    try {
-      const response = await axios.get('/api/tasks/userid', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`, 
-        },
-      });
-      
-      setUserData(response.data); 
-      setProfilePic(response.data.profilePic || null); 
-    } catch (error) {
-      console.error('Error fetching user data', error);
-    }
+    const sampleUser = {
+      name: 'Sunil Kumar',
+      email: 'sunil@example.com',
+      role: 'user',
+      profilePic: '',
+    };
+    setUserData(sampleUser);
+    setProfilePic(sampleUser.profilePic || null);
   };
+
   const fetchUserTasks = async () => {
     try {
       const response = await axios.get('/api/tasks/usertsk', {
@@ -30,111 +28,111 @@ const UserDashboard = () => {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
-      console.log(response.data);
-      setTasks(response.data); 
+      setTasks(response.data);
     } catch (error) {
       console.error('Error fetching tasks', error);
     }
   };
+
   useEffect(() => {
-    fetchUserData();
-    fetchUserTasks(); 
+    fetchUserData(); // uses sample data
+    fetchUserTasks(); // uses actual API
   }, []);
 
-  
-  useEffect(() => {
-    console.log(userData);
-  }, [userData]);
-  const logout = async () => {
+  const logout = () => {
     dispatch(logoutUser());
     localStorage.removeItem('token');
     toast.success('Logout successful!');
     window.location.href = '/login';
   };
+
   if (!userData) {
-    return <div className="min-h-screen flex justify-center items-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl font-semibold text-gray-600">Loading...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">User Dashboard</h1>
+    <div className="min-h-screen bg-gray-100 flex">
+      {/* Left Sidebar */}
+      <div className="w-64 bg-gray-800 text-white p-6">
+        <h2 className="text-2xl font-semibold text-white mb-6">Dashboard</h2>
+        <ul className="space-y-4">
+          <li>
+            <a href="/profile" className="text-lg hover:text-blue-400">Profile</a>
+          </li>
+          <li>
+            <a href="/tasks" className="text-lg hover:text-blue-400">Tasks</a>
+          </li>
+          <li>
+            <button onClick={logout} className="text-lg hover:text-blue-400">Logout</button>
+          </li>
+        </ul>
+      </div>
 
-        {/* User Profile Section */}
-        <div className="flex items-center mb-6">
-          <div className="relative">
-            <img
-              src={profilePic || 'https:'}
-              alt="Profile"
-              className="w-32 h-32 rounded-full object-cover border-2 border-gray-300"
-            />
-            <label
-              htmlFor="profilePicInput"
-              className="absolute bottom-2 right-2 bg-blue-500 text-white p-2 rounded-full cursor-pointer hover:bg-blue-600"
-            >
-              Upload
-            </label>
-            <input
-              type="file"
-              id="profilePicInput"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  const reader = new FileReader();
-                  reader.onloadend = () => setProfilePic(reader.result);
-                  reader.readAsDataURL(file);
-                }
-              }}
-            />
-          </div>
-          <div className="ml-6">
-            <h2 className="text-2xl font-bold">{userData.name}</h2>
-            <p className="text-gray-600">{userData.email}</p>
-            <p className="text-gray-600 capitalize">{userData.role}</p>
-          </div>
-        </div>
-
-        {/* User Info */}
-        <div className="grid grid-cols-2 gap-4">
-        <div className="bg-gray-200 p-4 rounded-lg mb-6">
-          <h3 className="text-lg font-semibold">Total Tasks</h3>
-          <div className="space-y-4">
-            {tasks.length > 0 ? (
-              tasks.map((task) => (
-                <div key={task.id} className="bg-white shadow-md rounded-lg p-4">
-                  <h4 className="text-xl font-semibold text-blue-600">{task.title}</h4>
-                  <p className="text-gray-700">{task.description}</p>
-                  <p className="text-gray-600 capitalize">{task.status}</p>
+      {/* Main Content Area */}
+      <div className="flex-1 p-8 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* User Details */}
+            <div className="bg-white p-6 rounded-lg shadow-lg">
+              <h2 className="text-3xl font-semibold text-gray-800 mb-4">User Details</h2>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <img
+                    src={profilePic || 'https://via.placeholder.com/150'}
+                    alt="Profile"
+                    className="w-32 h-32 rounded-full object-cover border-4 border-blue-500"
+                  />
                 </div>
-              ))
-            ) : (
-              <p className="text-lg text-gray-500">No tasks available.</p>
-            )}
-          </div>
-        </div>
-          <div className="bg-gray-200 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold">Role</h3>
-            <p className="text-xl font-bold text-green-500 capitalize">{userData.role}</p>
-          </div>
-        </div>
+                <div>
+                  <label className="block text-gray-600 font-semibold">Name</label>
+                  <p className="text-lg text-gray-800">{userData.name}</p>
+                </div>
+                <div>
+                  <label className="block text-gray-600 font-semibold">Email</label>
+                  <p className="text-lg text-gray-800">{userData.email}</p>
+                </div>
+                <div>
+                  <label className="block text-gray-600 font-semibold">Role</label>
+                  <p className="text-lg text-gray-800">{userData.role}</p>
+                </div>
+              </div>
+            </div>
 
-        {/* Action Buttons */}
-        <div className="mt-8 flex justify-between">
-          <button
-            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
-          >
-            Edit Profile
-          </button>
-          <button
-            onClick={() => {
-              logout(); 
-            }}
-            className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
-          >
-            Logout
-          </button>
+            {/* Task List */}
+            <div className="bg-white p-6 rounded-lg shadow-lg">
+              <h3 className="text-2xl font-semibold text-gray-800 mb-4">Your Tasks</h3>
+              {tasks.length > 0 ? (
+                <div className="space-y-4">
+                  {tasks.map((task) => (
+                    <div
+                      key={task._id}
+                      className="bg-white border border-gray-200 rounded-lg shadow-sm p-4"
+                    >
+                      <h4 className="text-xl font-semibold text-blue-600 mb-2">{task.title}</h4>
+                      <p className="text-gray-600 mb-2">{task.description}</p>
+                      <span
+                        className={`inline-block px-4 py-2 text-sm rounded-full ${
+                          task.status === 'completed'
+                            ? 'bg-green-200 text-green-800'
+                            : task.status === 'pending'
+                            ? 'bg-yellow-200 text-yellow-800'
+                            : 'bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        {task.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">No tasks assigned.</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
