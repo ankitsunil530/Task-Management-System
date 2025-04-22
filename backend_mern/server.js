@@ -1,34 +1,62 @@
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-dotenv.config();
-import db from "./db/db.js";
-import connectDB from "./db/db.js";
-const app = express();
 import cors from "cors";
+import connectDB from "./db/db.js";
 import authRoute from "./routes/authRoute.js";
-app.use(cors(
-     {
-          origin: ["http://localhost:5173","https://task-management-syste-git-96807b-sunil-kumars-projects-0e93c9f4.vercel.app"],
-          credentials: true
-     }
-));
-const port = process.env.PORT || 5000;
+
+dotenv.config();
+const app = express();
+
+// ✅ Connect to DB
 connectDB();
+
+// ✅ CORS setup
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://task-management-system-tawny-eta.vercel.app"
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
+// ✅ Handle preflight requests
+app.options("*", cors(corsOptions));
+
+// ✅ Optional: log origin for debugging
+app.use((req, res, next) => {
+  console.log("Origin:", req.headers.origin);
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+  next();
+});
+
+// ✅ Middleware
 app.use(cookieParser());
 app.use(express.json());
-app.use(express.urlencoded(
-     { 
-          extended: true 
-     }));
+app.use(express.urlencoded({ extended: true }));
 
-app.use("/api/user",authRoute);
+// ✅ Routes
+app.use("/api/user", authRoute);
 
 app.get("/", (req, res) => {
-    res.send("Backend is running");
-}
-);
+  res.send("Backend is running");
+});
 
+// ✅ Start Server
+const port = process.env.PORT || 5000;
 app.listen(port, () => {
-    console.log(`Server started on http://localhost:${port}`);
-    });
+  console.log(`Server started on http://localhost:${port}`);
+});
