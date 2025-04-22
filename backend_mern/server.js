@@ -9,7 +9,7 @@ import cors from "cors";
 import authRoute from "./routes/authRoute.js";
 app.use(cors(
      {
-          origin: ["http://localhost:5173/","https://task-management-syste-git-96807b-sunil-kumars-projects-0e93c9f4.vercel.app/"],
+          origin: ["http://localhost:5173","https://task-management-syste-git-96807b-sunil-kumars-projects-0e93c9f4.vercel.app"],
           credentials: true
      }
 ));
