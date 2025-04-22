@@ -7,7 +7,12 @@ import connectDB from "./db/db.js";
 const app = express();
 import cors from "cors";
 import authRoute from "./routes/authRoute.js";
-app.use(cors());
+app.use(cors(
+     {
+          origin: ["http://localhost:5173/","https://task-management-syste-git-96807b-sunil-kumars-projects-0e93c9f4.vercel.app/"],
+          credentials: true
+     }
+));
 const port = process.env.PORT || 5000;
 connectDB();
 app.use(cookieParser());
