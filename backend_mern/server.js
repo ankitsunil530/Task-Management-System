@@ -18,6 +18,12 @@ app.use(express.urlencoded(
      }));
 
 app.use("/api/user",authRoute);
+
+app.get("/", (req, res) => {
+    res.send("Backend is running");
+}
+);
+
 app.listen(port, () => {
     console.log(`Server started on http://localhost:${port}`);
     });
