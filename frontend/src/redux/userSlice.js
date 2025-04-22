@@ -1,16 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-
+const backend_url=import.meta.env.VITE_BACKEND_URI||'http://localhost:8000';
 export const loginUser = createAsyncThunk(
   'user/login',
   async ({ user_id, password}, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`https://task-management-syste-git-58b571-sunil-kumars-projects-0e93c9f4.vercel.app/api/user/login`, { user_id, password }, {
-        
+      const response = await axios.post(`${backend_url}/api/user/login`, { user_id, password }, {
         withCredentials: true,
       });
-      console.log("Backend Path:",process.env.BACKEND_URI)
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
