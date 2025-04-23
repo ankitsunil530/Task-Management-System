@@ -30,9 +30,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// ✅ Handle preflight requests
-app.options("*", cors(corsOptions));
-
 // ✅ Optional: log origin for debugging
 app.use((req, res, next) => {
   console.log("Origin:", req.headers.origin);
