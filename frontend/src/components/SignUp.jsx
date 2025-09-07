@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch } from 'react-redux';
@@ -24,21 +24,11 @@ function SignUp() {
     const numberRegex = /[0-9]/;
     const specialCharRegex = /[@#$%^&*!]/;
 
-    if (!lengthRegex.test(password)) {
-      return 'Password must be at least 8 characters long';
-    }
-    if (!upperCaseRegex.test(password)) {
-      return 'Password must contain at least one uppercase letter';
-    }
-    if (!lowerCaseRegex.test(password)) {
-      return 'Password must contain at least one lowercase letter';
-    }
-    if (!numberRegex.test(password)) {
-      return 'Password must contain at least one digit';
-    }
-    if (!specialCharRegex.test(password)) {
-      return 'Password must contain at least one special character (@#$%^&*!)';
-    }
+    if (!lengthRegex.test(password)) return 'Password must be at least 8 characters long';
+    if (!upperCaseRegex.test(password)) return 'Password must contain at least one uppercase letter';
+    if (!lowerCaseRegex.test(password)) return 'Password must contain at least one lowercase letter';
+    if (!numberRegex.test(password)) return 'Password must contain at least one digit';
+    if (!specialCharRegex.test(password)) return 'Password must contain at least one special character (@#$%^&*!)';
 
     return '';
   };
@@ -58,9 +48,7 @@ function SignUp() {
     setValidationError('');
 
     try {
-      const resultAction = await dispatch(
-        registerUser({ name, user_id, email, password })
-      );
+      const resultAction = await dispatch(registerUser({ name, user_id, email, password }));
 
       if (registerUser.fulfilled.match(resultAction)) {
         toast.success('Registration successful! 🎉');
@@ -76,106 +64,126 @@ function SignUp() {
   };
 
   return (
-    <div className="min-h-screen flex items-center bg-gray-300 justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 px-4">
       <form
         onSubmit={handleSubmit}
-        className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 p-8 rounded-lg shadow-lg w-full max-w-sm"
+        className="bg-white/10 backdrop-blur-lg border border-white/20 p-8 rounded-2xl shadow-2xl w-full max-w-3xl"
       >
-        <h2 className="text-3xl font-bold text-center text-white mb-8">Sign Up</h2>
+        <h2 className="text-4xl font-extrabold text-center text-white mb-8 tracking-wide">
+          Create Account
+        </h2>
 
-        {/* Full Name */}
-        <label className="block mb-2 font-bold text-white">
-          Full Name <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
-          placeholder="Enter your name"
-          required
-        />
+        {/* Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Full Name */}
+          <div>
+            <label className="block mb-2 text-gray-200 font-semibold">
+              Full Name <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full p-3 rounded-lg bg-gray-100 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Enter your name"
+              required
+            />
+          </div>
 
-        {/* Username */}
-        <label className="block mt-4 mb-2 font-bold text-white">
-          Username <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={user_id}
-          onChange={(e) => setUser_id(e.target.value)}
-          className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
-          placeholder="Enter your username"
-          required
-        />
+          {/* Username */}
+          <div>
+            <label className="block mb-2 text-gray-200 font-semibold">
+              Username <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={user_id}
+              onChange={(e) => setUser_id(e.target.value)}
+              className="w-full p-3 rounded-lg bg-gray-100 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Enter your username"
+              required
+            />
+          </div>
 
-        {/* Email */}
-        <label className="block mt-4 mb-2 font-bold text-white">
-          Email <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
-          placeholder="Enter your email"
-          required
-        />
+          {/* Email */}
+          <div>
+            <label className="block mb-2 text-gray-200 font-semibold">
+              Email <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-3 rounded-lg bg-gray-100 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
 
-        {/* Password */}
-        <label className="block mt-4 mb-2 font-bold text-white">
-          Password <span className="text-red-500">*</span>
-        </label>
-        <div className="relative">
-          <input
-            type={passVisible ? 'text' : 'password'}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
-            placeholder="Enter your password"
-            required
-          />
-          <FontAwesomeIcon
-            icon={passVisible ? faEye : faEyeSlash}
-            className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-white"
-            onClick={() => setPassVisible(!passVisible)}
-          />
-        </div>
+          {/* Password */}
+          <div>
+            <label className="block mb-2 text-gray-200 font-semibold">
+              Password <span className="text-red-400">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type={passVisible ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-3 rounded-lg bg-gray-100 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Enter your password"
+                required
+              />
+              <FontAwesomeIcon
+                icon={passVisible ? faEye : faEyeSlash}
+                className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-gray-600 hover:text-indigo-500"
+                onClick={() => setPassVisible(!passVisible)}
+              />
+            </div>
+          </div>
 
-        {/* Confirm Password */}
-        <label className="block mt-4 mb-2 font-bold text-white">
-          Confirm Password <span className="text-red-500">*</span>
-        </label>
-        <div className="relative">
-          <input
-            type={passVisible ? 'text' : 'password'}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
-            placeholder="Confirm your password"
-            required
-          />
-          <FontAwesomeIcon
-            icon={passVisible ? faEye : faEyeSlash}
-            className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-white"
-            onClick={() => setPassVisible(!passVisible)}
-          />
+          {/* Confirm Password */}
+          <div>
+            <label className="block mb-2 text-gray-200 font-semibold">
+              Confirm Password <span className="text-red-400">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type={passVisible ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full p-3 rounded-lg bg-gray-100 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Confirm your password"
+                required
+              />
+              <FontAwesomeIcon
+                icon={passVisible ? faEye : faEyeSlash}
+                className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-gray-600 hover:text-indigo-500"
+                onClick={() => setPassVisible(!passVisible)}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Validation Error */}
         {validationError && (
-          <p className="mt-2 text-red-200 text-sm text-center">{validationError}</p>
+          <p className="mt-4 text-red-400 text-sm text-center">{validationError}</p>
         )}
 
+        {/* Submit Button */}
         <button
           type="submit"
-          className="w-full mt-6 p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="w-full mt-8 py-3 bg-indigo-600 text-white rounded-lg text-lg font-semibold hover:bg-indigo-700 transition-all focus:outline-none focus:ring-4 focus:ring-indigo-400"
         >
           Sign Up
         </button>
 
-        <p className="mt-4 text-white text-center">
-          Already have an account? <a href="/login" className="underline">Login</a>
+        {/* Login Link */}
+        <p className="mt-4 text-gray-300 text-center">
+          Already have an account?{' '}
+          <a href="/login" className="text-indigo-400 hover:underline">
+            Login
+          </a>
         </p>
 
         <ToastContainer position="top-center" />

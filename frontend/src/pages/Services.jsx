@@ -1,55 +1,73 @@
-import React from 'react';
-import { FaTasks, FaUsers, FaBell, FaChartLine } from 'react-icons/fa'; // Icons from react-icons
-import servicesbg from '../images/servicesbg.jpg'; // Ensure the path to your background image is correct
+import React from "react";
+import { FaTasks, FaUsers, FaBell, FaChartLine } from "react-icons/fa";
+import servicesbg from "../images/servicesbg.jpg"; // Make sure path is correct
 
 function Services() {
   return (
-    <div 
-      className="bg-cover bg-center h-full py-16" 
-      style={{ backgroundImage: `url(${servicesbg})` }} // Adding the background image
+    <div
+      className="bg-cover bg-center min-h-screen flex items-center justify-center"
+      style={{ backgroundImage: `url(${servicesbg})` }}
     >
-      <div className="bg-black bg-opacity-50 h-full py-16">
-        <div className="container mx-auto text-center">
-          <h1 className="text-5xl font-extrabold text-white mb-8">Our Services</h1>
-          <p className="text-lg max-w-2xl text-white mx-auto mb-12">
-            We offer a wide range of services designed to help you manage your tasks more efficiently. Our platform is built to streamline your workflow, whether you are working alone or in a team.
+      {/* Dark overlay */}
+      <div className="bg-black bg-opacity-70 w-full h-full py-20 px-6">
+        <div className="max-w-7xl mx-auto text-center">
+          {/* Heading */}
+          <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6">
+            Our <span className="text-indigo-400">Services</span>
+          </h1>
+          <p className="text-lg md:text-xl max-w-3xl text-gray-200 mx-auto mb-16">
+            We provide everything you need to stay on top of your tasks and boost
+            team productivity. Whether you're working solo or with a team,
+            TaskMaster has the right tools for you.
           </p>
-          
+
           {/* Services grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Service 1: Task Management */}
-            <div className="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
-              <FaTasks className="text-4xl text-indigo-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Task Management</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+            {/* Service 1 */}
+            <div className="bg-gradient-to-br from-white to-gray-100 shadow-lg rounded-2xl p-8 transform hover:-translate-y-2 hover:shadow-2xl transition duration-300">
+              <FaTasks className="text-5xl text-indigo-600 mx-auto mb-6" />
+              <h2 className="text-2xl font-bold text-gray-800 mb-3">
+                Task Management
+              </h2>
               <p className="text-gray-600">
-                Create, assign, and organize tasks with ease. Track progress and stay on top of your work.
+                Create, assign, and organize tasks easily. Track progress and
+                complete work on time without hassle.
               </p>
             </div>
-            
-            {/* Service 2: Team Collaboration */}
-            <div className="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
-              <FaUsers className="text-4xl text-indigo-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Team Collaboration</h2>
+
+            {/* Service 2 */}
+            <div className="bg-gradient-to-br from-white to-gray-100 shadow-lg rounded-2xl p-8 transform hover:-translate-y-2 hover:shadow-2xl transition duration-300">
+              <FaUsers className="text-5xl text-indigo-600 mx-auto mb-6" />
+              <h2 className="text-2xl font-bold text-gray-800 mb-3">
+                Team Collaboration
+              </h2>
               <p className="text-gray-600">
-                Work seamlessly with your team. Assign tasks, set priorities, and collaborate in real-time.
+                Work seamlessly with your team. Assign tasks, share updates, and
+                collaborate in real-time with ease.
               </p>
             </div>
-            
-            {/* Service 3: Real-time Notifications */}
-            <div className="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
-              <FaBell className="text-4xl text-indigo-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Real-time Notifications</h2>
+
+            {/* Service 3 */}
+            <div className="bg-gradient-to-br from-white to-gray-100 shadow-lg rounded-2xl p-8 transform hover:-translate-y-2 hover:shadow-2xl transition duration-300">
+              <FaBell className="text-5xl text-indigo-600 mx-auto mb-6" />
+              <h2 className="text-2xl font-bold text-gray-800 mb-3">
+                Real-time Notifications
+              </h2>
               <p className="text-gray-600">
-                Stay updated with real-time notifications on task updates, deadlines, and more.
+                Stay updated instantly with task alerts, deadline reminders, and
+                important project notifications.
               </p>
             </div>
-            
-            {/* Service 4: Analytics and Reports */}
-            <div className="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
-              <FaChartLine className="text-4xl text-indigo-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Analytics and Reports</h2>
+
+            {/* Service 4 */}
+            <div className="bg-gradient-to-br from-white to-gray-100 shadow-lg rounded-2xl p-8 transform hover:-translate-y-2 hover:shadow-2xl transition duration-300">
+              <FaChartLine className="text-5xl text-indigo-600 mx-auto mb-6" />
+              <h2 className="text-2xl font-bold text-gray-800 mb-3">
+                Analytics & Reports
+              </h2>
               <p className="text-gray-600">
-                Gain insights with detailed analytics and reports to track progress and productivity.
+                Get detailed insights with reports and analytics to measure
+                productivity and track your progress.
               </p>
             </div>
           </div>
