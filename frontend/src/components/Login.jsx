@@ -25,36 +25,36 @@ function Login() {
     const res = await dispatch(loginUser({ user_id: inputs.user_id, password: inputs.password }));
     localStorage.setItem('token', res.payload.data?.accesstoken);
     console.log("Login Response:", res);
-    if(res.payload.success){
+    if (res.payload.success) {
       toast.success(res.payload.message);
-      console.log("User role:", res.payload.data?.user?.role); // Make sure user role is correct
-      if(res.payload.data.user.role==='Admin'){
+      console.log("User role:", res.payload.data?.user?.role);
+      if (res.payload.data.user.role === 'Admin') {
         navigate('/admin');
-      }
-      else if(res.payload.data.user.role==='User'){
+      } else if (res.payload.data.user.role === 'User') {
         navigate('/user');
       }
     } else {
       toast.error(res.payload.message);
     }
-    
-    
   };
 
   return (
-    <div className="min-h-screen bg-gray-300 flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700">
       <form
         onSubmit={handleLogin}
-        className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 p-8 rounded-lg shadow-lg w-full max-w-sm"
+        className="bg-white/10 backdrop-blur-lg border border-white/20 p-8 rounded-2xl shadow-2xl w-full max-w-sm"
       >
-        <h2 className="text-3xl font-bold text-center text-white mb-8">Login</h2>
+        <h2 className="text-4xl font-extrabold text-center text-white mb-8 tracking-wide">
+          Welcome Back
+        </h2>
 
+        {/* Username */}
         <div className="mb-6">
           <label
-            className="block text-white text-sm font-semibold mb-2"
+            className="block text-gray-200 text-sm font-semibold mb-2"
             htmlFor="user_id"
           >
-            Username <span className="text-red-500">*</span>
+            Username <span className="text-red-400">*</span>
           </label>
           <input
             type="text"
@@ -62,18 +62,19 @@ function Login() {
             name="user_id"
             value={inputs.user_id}
             onChange={handleInputChange}
-            className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
+            className="w-full p-3 rounded-lg bg-gray-100 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             placeholder="Enter your username"
             required
           />
         </div>
 
+        {/* Password */}
         <div className="mb-6">
           <label
-            className="block text-white text-sm font-semibold mb-2"
+            className="block text-gray-200 text-sm font-semibold mb-2"
             htmlFor="password"
           >
-            Password <span className="text-red-500">*</span>
+            Password <span className="text-red-400">*</span>
           </label>
           <div className="relative">
             <input
@@ -82,35 +83,36 @@ function Login() {
               name="password"
               value={inputs.password}
               onChange={handleInputChange}
-              className="w-full p-3 border border-white rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500"
+              className="w-full p-3 rounded-lg bg-gray-100 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Enter your password"
               required
             />
-            <span className="absolute top-1/2 right-3 -translate-y-1/2">
+            <span className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600">
               <FontAwesomeIcon
                 icon={passVisible ? faEye : faEyeSlash}
-                className="cursor-pointer"
+                className="cursor-pointer hover:text-indigo-500"
                 onClick={() => setPassVisible(!passVisible)}
               />
             </span>
           </div>
         </div>
 
+        {/* Login Button */}
         <div>
           <button
             type="submit"
-            className="w-full bg-yellow-500 text-black py-3 rounded-lg text-lg font-semibold hover:bg-yellow-600 focus:outline-none focus:ring-4 focus:ring-yellow-400"
+            className="w-full bg-indigo-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-indigo-700 transition-all focus:outline-none focus:ring-4 focus:ring-indigo-400"
           >
             Login
           </button>
         </div>
 
-        {/* 👇 Sign Up section added here */}
+        {/* Sign Up link */}
         <div className="mt-6 text-center">
-          <p className="text-white">
+          <p className="text-gray-300">
             Don&apos;t have an account?{' '}
             <span
-              className="text-yellow-300 hover:underline cursor-pointer"
+              className="text-indigo-400 hover:underline cursor-pointer"
               onClick={() => navigate('/signup')}
             >
               Sign Up
