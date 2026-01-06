@@ -1,35 +1,45 @@
-import jwt from 'jsonwebtoken';
-const auth = (request, response, next) => {
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+
+const protect = async (req, res, next) => {
+  let token;
+
   try {
-    const token =
-      request.cookies.accessToken ||
-      (bearerToken &&
-        bearerToken.startsWith("Bearer ") &&
-        bearerToken.split(" ")[1]);
+    // 1️⃣ Token from cookies OR headers
+    if (req.cookies?.accessToken) {
+      token = req.cookies.accessToken;
+    } else if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer ")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+
+    // 2️⃣ No token
     if (!token) {
-      return response.status(401).json({
-        message: "Token not provided",
-        error: true,
-        success: false,
+      return res.status(401).json({
+        message: "Not authorized, token missing",
       });
     }
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);
-    if (!decoded) {
-      return response.status(401).json({
-        message: "Unauthorized access",
-        error: true,
-        success: false,
+
+    // 3️⃣ Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // 4️⃣ Attach user (without password)
+    req.user = await User.findById(decoded.id).select("-password");
+
+    if (!req.user) {
+      return res.status(401).json({
+        message: "User not found",
       });
     }
-    request.user = decoded;
+
     next();
   } catch (error) {
-    return response.status(401).json({
-      message: "Invalid or expired token",
-      error: true,
-      success: false,
+    return res.status(401).json({
+      message: "Not authorized, token failed",
     });
   }
 };
 
-export default auth;
+export default protect;
