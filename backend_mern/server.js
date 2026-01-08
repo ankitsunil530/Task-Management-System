@@ -33,7 +33,7 @@ app.use(async (req, res, next) => {
 });
 
 /* ===============================
-   🌍 CORS CONFIG (FIXED)
+   🌍 CORS CONFIG (PRODUCTION SAFE)
 ================================ */
 const allowedOrigins = isDev
   ? [
@@ -41,17 +41,20 @@ const allowedOrigins = isDev
       "http://127.0.0.1:5173",
       "http://localhost:8000",
     ]
-  : (process.env.ALLOWED_ORIGINS || "")
-      .split(",")
-      .map((origin) => origin.trim())
-      .filter(Boolean);
+  : process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+  : [];
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // allow server-to-server & preflight
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error(`CORS blocked for origin: ${origin}`));
+      // ❗ DO NOT throw error (preflight break hota hai)
+      callback(null, false);
     }
   },
   credentials: true,
@@ -60,7 +63,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // ✅ PRE-FLIGHT FIX
+app.options("*", cors(corsOptions)); // ✅ Preflight handler
 
 /* ===============================
    🛡️ SECURITY MIDDLEWARE
@@ -70,7 +73,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
 /* ===============================
-   🧾 DEV REQUEST LOGGER
+   🧾 DEV LOGGER
 ================================ */
 if (isDev) {
   app.use((req, res, next) => {
@@ -118,7 +121,6 @@ app.use((req, res) => {
 ================================ */
 app.use((err, req, res, next) => {
   const status = err.status || 500;
-  const message = isDev ? err.message : "Internal Server Error";
 
   if (isDev) {
     console.error("❌ ERROR:", err.message);
@@ -126,8 +128,7 @@ app.use((err, req, res, next) => {
   }
 
   res.status(status).json({
-    error: message,
-    ...(isDev && { stack: err.stack }),
+    error: isDev ? err.message : "Internal Server Error",
   });
 });
 
