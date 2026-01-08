@@ -31,7 +31,7 @@ const corsOptions = {
   },
   credentials: true,
   methods: ["GET","PATCH","POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "application/json", "Authorization"],
 };
 
 app.use(cors(corsOptions));
@@ -56,7 +56,9 @@ app.use("/api/tasks", taskRoute);
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "OK", environment: NODE_ENV });
 });
-
+app.get("/api/ping", (req, res) => {
+  res.json({ status: "backend alive" });
+});
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Backend is running", environment: NODE_ENV });
 });
