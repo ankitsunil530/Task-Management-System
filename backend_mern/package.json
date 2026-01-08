@@ -23,7 +23,11 @@
     "mongodb": "^6.15.0",
     "mongoose": "^8.21.0"
   },
+  
   "devDependencies": {
     "nodemon": "^3.1.11"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
