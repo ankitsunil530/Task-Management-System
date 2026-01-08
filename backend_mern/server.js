@@ -11,8 +11,21 @@ const NODE_ENV = process.env.NODE_ENV || "development";
 const isDev = NODE_ENV === "development";
 
 // ✅ Connect to DB
-connectDB();
-
+let isConnected = false;
+app.use(async (req, res, next) => {
+  if (!isConnected) {
+    try {
+      await connectDB();
+      isConnected = true;
+      next();
+    } catch (err) {
+      console.error("❌ Database connection error:", err);
+      res.status(500).json({ error: "Database connection error" });
+    }
+  } else {
+    next();
+  }
+});
 // ✅ CORS setup - environment-aware
 const allowedOrigins = isDev
   ? ["http://localhost:5173", "http://localhost:5000", "http://127.0.0.1:5173"]
