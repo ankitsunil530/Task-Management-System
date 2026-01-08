@@ -1,134 +1,170 @@
-# Task Management System  
 
-## Project Overview  
-The **Task Management System** is a web application that allows users to manage their tasks efficiently. The platform includes features like task categorization (pending and completed), user authentication, and the ability to mark tasks as completed or pending, delete tasks, and more.  
 
-## Features  
-- **User Authentication**: Secure login and token-based authentication (JWT).  
-- **Task Management**:  
-  - Add tasks with a title and description.  
-  - View all pending and completed tasks.  
-  - Mark tasks as completed or revert them to pending.  
-  - Delete tasks.  
-- **Responsive Design**: Built with Tailwind CSS for a seamless user experience on all devices.  
-- **Role Management**: Admin and user roles for task organization and management (if applicable).  
+# Task Management System (MERN Stack)
 
-## Technologies Used  
-### Frontend:  
-- React.js  
-- Tailwind CSS  
+## Project Overview
 
-### Backend:  
-- Node.js  
-- Express.js  
-- JWT (for authentication)  
+The **Task Management System** is a full-stack MERN (MongoDB, Express, React, Node) web application that helps users manage and track tasks efficiently. Users can add, update, complete, and delete tasks with a clean and responsive interface. It also includes secure user authentication.
 
-### Database:  
-- MySQL  
+## Features
 
-### Tools and Libraries:  
-- Axios  
-- React Router  
-- Sequelize/Knex.js (for database management)  
-- XAMPP (for MySQL database setup in production)  
+* **User Authentication**: Secure registration and login using JWT tokens.
+* **Task Management**:
 
-## Installation  
+  * Add tasks with a title and description.
+  * View tasks categorized into pending and completed.
+  * Update task status (complete/revert).
+  * Delete tasks.
+* **Role Management**: Basic support for user and admin roles (if applicable).
+* **Responsive UI**: Optimized for all devices using Tailwind CSS.
 
-### Prerequisites  
-- Node.js and npm installed  
-- XAMPP for MySQL setup  
-- Git  
+## Tech Stack
 
-### Setup Instructions  
+### Frontend
 
-1. Clone the repository:  
-   ```bash  
-   git clone https://github.com/your-username/task-management-system.git  
-   cd task-management-system  
-   ```  
+* React.js
+* React Router DOM
+* Axios
+* Tailwind CSS
 
-2. Install dependencies for both client and server:  
-   ```bash  
-   # In the project root directory, install server dependencies  
-   cd backend  
-   npm install  
+### Backend
 
-   # In the frontend directory, install client dependencies  
-   cd ../frontend  
-   npm install  
-   ```  
+* Node.js
+* Express.js
+* JWT (JSON Web Token) for authentication
+* Mongoose for MongoDB ODM
 
-3. Configure environment variables:  
-   Create a `.env` file in the `backend` directory and add:  
-   ```plaintext  
-   PORT=5000  
-   DB_HOST=localhost  
-   DB_USER=root  
-   DB_PASSWORD=your_password  
-   DB_NAME=task_management  
-   JWT_SECRET=your_jwt_secret  
-   ```  
+### Database
 
-4. Start the MySQL database using XAMPP and create the database:  
-   ```sql  
-   CREATE DATABASE task_management;  
-   ```  
+* MongoDB (Cloud or Local using MongoDB Compass)
 
-5. Run migrations and seeders (if applicable):  
-   ```bash  
-   npx sequelize-cli db:migrate  
-   npx sequelize-cli db:seed:all  
-   ```  
+## Folder Structure
 
-6. Start the development servers:  
-   - Backend:  
-     ```bash  
-     cd backend  
-     npm start  
-     ```  
-   - Frontend:  
-     ```bash  
-     cd frontend  
-     npm start  
-     ```  
+```
+task-management-system/
+├── backend/          # Node + Express + MongoDB API
+│   └── models/       # Mongoose models
+│   └── routes/       # Express routes
+│   └── controllers/  # Route handlers
+│   └── middleware/   # Auth middleware
+│   └── .env          # Environment variables
+├── frontend/         # React app
+│   └── src/
+│       └── components/
+│       └── pages/
+│       └── context/
+│   └── .env
+```
 
-7. Access the app in your browser at `http://localhost:3000`.  
+## Setup Instructions
 
-## API Endpoints  
-### Authentication:  
-- `POST /api/auth/register` - Register a new user.  
-- `POST /api/auth/login` - Login with email and password.  
+### Prerequisites
 
-### Tasks:  
-- `GET /api/tasks/pending` - Fetch all pending tasks.  
-- `GET /api/tasks/completed` - Fetch all completed tasks.  
-- `POST /api/tasks` - Add a new task.  
-- `PUT /api/tasks/:id/complete` - Mark a task as complete.  
-- `PUT /api/tasks/:id/pending` - Mark a task as pending.  
-- `DELETE /api/tasks/:id` - Delete a task.  
+* Node.js and npm
+* MongoDB installed locally or use MongoDB Atlas
+* Git
 
-## Deployment  
-### Deploying with XAMPP  
-1. Configure MySQL settings in `.env`.  
-2. Serve the backend using a hosting service like AWS or Render.  
-3. Build the React app:  
-   ```bash  
-   cd frontend  
-   npm run build  
-   ```  
-4. Deploy the `build` folder to a static file hosting service like Netlify or Vercel.  
+### 1. Clone the Repository
 
-## Screenshots  
-*Pending tasks and Completed tasks screenshots can be added here.*  
+```bash
+git clone https://github.com/your-username/task-management-system.git  
+cd task-management-system  
+```
 
-## Future Enhancements  
-- Add notifications for task deadlines.  
-- Add priority levels to tasks.  
-- Implement a drag-and-drop interface for task organization.  
+### 2. Backend Setup
 
-## Contributors  
-- **Your Name**: Full-stack Developer  
-- Other team members (if any).  
+```bash
+cd backend  
+npm install  
+```
 
-## License  
-This project is licensed under the [MIT License](LICENSE).  
+#### Create a `.env` file in the `backend` directory:
+
+```env
+PORT=5000  
+MONGO_URI=your_mongodb_connection_string  
+JWT_SECRET=your_jwt_secret  
+```
+
+### 3. Frontend Setup
+
+```bash
+cd ../frontend  
+npm install  
+```
+
+#### Create a `.env` file in the `frontend` directory:
+
+```env
+VITE_API_URL=http://localhost:5000/api  
+```
+
+### 4. Run the App
+
+#### Backend:
+
+```bash
+cd backend  
+npm run dev  
+```
+
+#### Frontend:
+
+```bash
+cd frontend  
+npm run dev  
+```
+
+Open [http://localhost:5173](http://localhost:5173) to view the app in your browser.
+
+## API Endpoints
+
+### Auth Routes
+
+* `POST /api/auth/register` - Register new user
+* `POST /api/auth/login` - User login
+
+### Task Routes
+
+* `GET /api/tasks/pending` - Get all pending tasks
+* `GET /api/tasks/completed` - Get all completed tasks
+* `POST /api/tasks` - Add new task
+* `PUT /api/tasks/:id/complete` - Mark task as complete
+* `PUT /api/tasks/:id/pending` - Revert task to pending
+* `DELETE /api/tasks/:id` - Delete task
+
+## Deployment
+
+### Frontend
+
+```bash
+cd frontend  
+npm run build  
+```
+
+* Deploy the `/frontend/dist` folder to Netlify, Vercel, or Surge.
+
+### Backend
+
+* Deploy using platforms like Render, Railway, or DigitalOcean.
+* Add your production MongoDB URI and other secrets in the hosted `.env`.
+
+## Screenshots
+
+*Add screenshots of the app here (Pending, Completed views, Login/Register UI).*
+
+## Future Enhancements
+
+* Google or GitHub OAuth login
+* Task reminders/notifications
+* Task prioritization
+* Subtasks or checklists
+* Real-time collaboration
+
+## Contributors
+
+* **Your Name** – Full-stack Developer
+* Collaborators (if any)
+
+
+
