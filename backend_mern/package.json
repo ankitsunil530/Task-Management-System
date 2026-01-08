@@ -1,33 +1,21 @@
 {
   "name": "backend_mern",
   "version": "1.0.0",
-  "main": "server.js",
-  "type": "module",
-  "scripts": {
-    "dev": "nodemon server.js",
-    "start": "node server.js",
-    "start:prod": "NODE_ENV=production node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
-    "dotenv": "^16.6.1",
-    "express": "^4.22.1",
-    "express-async-handler": "^1.2.0",
-    "jsonwebtoken": "^9.0.3",
-    "mongodb": "^6.15.0",
-    "mongoose": "^8.21.0"
-  },
-  
-  "devDependencies": {
-    "nodemon": "^3.1.11"
-  },
+  "private": true,
   "engines": {
     "node": "18.x"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "2.4.3",
+    "cookie-parser": "1.4.6",
+    "cors": "2.8.5",
+    "dotenv": "16.4.5",
+    "express": "4.19.2",
+    "express-async-handler": "^1.2.0",
+    "jsonwebtoken": "9.0.2",
+    "mongoose": "7.6.3"
   }
 }
