@@ -1,104 +1,122 @@
-// eslint-disable-next-line no-unused-vars
-import React, { useState } from "react";
+import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { FaBars, FaTimes } from "react-icons/fa"; // For mobile menu icons
+import { FaBars, FaTimes } from "react-icons/fa";
 
 function Header() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Handle Login
-  const handleLoginClick = () => {
-    navigate("/login");
-  };
+  const links = [
+    { name: "Home", path: "/" },
+    { name: "About", path: "/about" },
+    { name: "Services", path: "/services" },
+    { name: "Contact", path: "/contact" },
+  ];
 
   return (
-    <>
-      <header className="fixed top-0 left-0 w-full z-50 bg-gray-900 bg-opacity-90 backdrop-blur-md shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          {/* Logo */}
-          <div className="flex items-center cursor-pointer">
-            <img
-              src="https://preview.redd.it/hi-this-is-a-logo-for-the-task-manager-application-called-v0-si3hzlaglc7b1.png?width=640&crop=smart&auto=webp&s=04d231d246026a59f988ac183a82e0ea2ca8ef4e"
-              alt="Logo"
-              className="h-10 w-10 mr-3 rounded-full"
-            />
-            <h1 className="text-white text-2xl font-bold italic tracking-wide">
-              taskphiles
-            </h1>
-          </div>
+    <header className="fixed top-0 left-0 w-full z-50 bg-[#0B1120]/80 backdrop-blur-md border-b border-slate-800">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        {/* Logo */}
+        <div
+          className="flex items-center gap-3 cursor-pointer"
+          onClick={() => navigate("/")}
+        >
+          <img
+            src="https://preview.redd.it/hi-this-is-a-logo-for-the-task-manager-application-called-v0-si3hzlaglc7b1.png?width=640&crop=smart&auto=webp&s=04d231d246026a59f988ac183a82e0ea2ca8ef4e"
+            alt="logo"
+            className="h-9 w-9 rounded-full"
+          />
+          <span className="text-white text-xl font-bold tracking-wide">
+            taskphiles
+          </span>
+        </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-10">
-            {["/", "/about", "/services", "/contact"].map((path, idx) => {
-              const names = ["Home", "About", "Services", "Contact"];
-              return (
-                <NavLink
-                  key={path}
-                  to={path}
-                  className={({ isActive }) =>
-                    `relative text-lg font-medium ${
-                      isActive ? "text-blue-400" : "text-white"
-                    } hover:text-blue-400 transition duration-300`
-                  }
-                >
-                  {names[idx]}
-                  {/* Underline animation */}
-                  <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-blue-400 transition-all group-hover:w-full"></span>
-                </NavLink>
-              );
-            })}
-          </nav>
-
-          {/* Login Button */}
-          <div className="hidden md:flex">
-            <button
-              className="bg-blue-500 text-white text-lg px-6 py-2 rounded-lg shadow hover:bg-blue-600 transition"
-              onClick={handleLoginClick}
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-10">
+          {links.map((link) => (
+            <NavLink
+              key={link.path}
+              to={link.path}
+              className={({ isActive }) =>
+                `relative text-sm font-medium transition ${
+                  isActive ? "text-blue-400" : "text-slate-300"
+                } hover:text-blue-400`
+              }
             >
-              Login
-            </button>
-          </div>
+              {link.name}
+              <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-blue-400 transition-all duration-300 group-hover:w-full"></span>
+            </NavLink>
+          ))}
+        </nav>
 
-          {/* Mobile Menu Toggle */}
+        {/* Actions */}
+        <div className="hidden md:flex items-center gap-4">
           <button
-            className="md:hidden text-white text-2xl"
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => navigate("/login")}
+            className="px-5 py-2 rounded-lg text-sm font-semibold border border-slate-700 text-slate-200 hover:bg-slate-800 transition"
           >
-            {isOpen ? <FaTimes /> : <FaBars />}
+            Login
+          </button>
+
+          <button
+            onClick={() => navigate("/register")}
+            className="px-5 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 transition"
+          >
+            Sign up
           </button>
         </div>
 
-        {/* Mobile Menu */}
-        {isOpen && (
-          <div className="md:hidden bg-gray-800 bg-opacity-95 text-center py-6 space-y-6">
-            {["/", "/about", "/services", "/contact"].map((path, idx) => {
-              const names = ["Home", "About", "Services", "Contact"];
-              return (
-                <NavLink
-                  key={path}
-                  to={path}
-                  onClick={() => setIsOpen(false)}
-                  className={({ isActive }) =>
-                    `block text-lg font-medium ${
-                      isActive ? "text-blue-400" : "text-white"
-                    } hover:text-blue-400`
-                  }
-                >
-                  {names[idx]}
-                </NavLink>
-              );
-            })}
+        {/* Mobile Toggle */}
+        <button
+          className="md:hidden text-slate-200 text-xl"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <FaTimes /> : <FaBars />}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="md:hidden bg-[#0B1120] border-t border-slate-800 px-6 py-6 space-y-5">
+          {links.map((link) => (
+            <NavLink
+              key={link.path}
+              to={link.path}
+              onClick={() => setIsOpen(false)}
+              className={({ isActive }) =>
+                `block text-sm font-medium ${
+                  isActive ? "text-blue-400" : "text-slate-300"
+                }`
+              }
+            >
+              {link.name}
+            </NavLink>
+          ))}
+
+          <div className="pt-4 flex flex-col gap-3">
             <button
-              className="bg-blue-500 text-white text-lg px-6 py-2 rounded-lg shadow hover:bg-blue-600 transition"
-              onClick={handleLoginClick}
+              onClick={() => {
+                setIsOpen(false);
+                navigate("/login");
+              }}
+              className="w-full py-2 rounded-lg border border-slate-700 text-slate-200"
             >
               Login
             </button>
+
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                navigate("/register");
+              }}
+              className="w-full py-2 rounded-lg bg-blue-600 text-white"
+            >
+              Sign up
+            </button>
           </div>
-        )}
-      </header>
-    </>
+        </div>
+      )}
+    </header>
   );
 }
 

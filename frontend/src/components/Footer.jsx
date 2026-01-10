@@ -2,48 +2,68 @@ import { NavLink } from "react-router-dom";
 
 function Footer() {
   const handleSubscribe = (e) => {
-    e.preventDefault(); // Prevent page refresh
+    e.preventDefault();
     alert("Subscribed!");
   };
 
   return (
-    <footer className="bg-gray-900 text-white py-10 px-6">
-      <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 text-center md:text-left">
-        
-        {/* Company Info */}
+    <footer className="bg-[#0B1120] text-slate-300 border-t border-slate-800">
+      <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-3 gap-12">
+
+        {/* Brand */}
         <div>
-          <h2 className="text-2xl font-bold mb-4">taskphiles</h2>
-          <p className="text-gray-400">
-            Simplify your task management with <span className="font-semibold">taskphiles</span>. 
+          <h2 className="text-2xl font-bold text-white mb-4">taskphiles</h2>
+          <p className="text-slate-400 leading-relaxed">
+            Simplify your task management with{" "}
+            <span className="text-white font-semibold">taskphiles</span>.
             Organize, prioritize, and stay productive effortlessly.
           </p>
         </div>
 
-        {/* Useful Links */}
+        {/* Links */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Useful Links</h2>
-          <div className="flex flex-col space-y-2">
-            <NavLink to={"/about"} className="hover:text-gray-300 transition-colors">About Us</NavLink>
-            <NavLink to={"/services"} className="hover:text-gray-300 transition-colors">Features</NavLink>
-            <NavLink to={"/dashboard"} className="hover:text-gray-300 transition-colors">Pricing</NavLink>
-            <NavLink to={"/contact"} className="hover:text-gray-300 transition-colors">Contact</NavLink>
-          </div>
+          <h3 className="text-lg font-semibold text-white mb-4">Product</h3>
+          <ul className="space-y-3">
+            <li>
+              <NavLink to="/about" className="hover:text-blue-400 transition">
+                About
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/services" className="hover:text-blue-400 transition">
+                Features
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/dashboard" className="hover:text-blue-400 transition">
+                Pricing
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/contact" className="hover:text-blue-400 transition">
+                Contact
+              </NavLink>
+            </li>
+          </ul>
         </div>
 
-        {/* Subscribe */}
+        {/* Newsletter */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Stay Updated</h2>
-          <p className="text-gray-400 mb-4">Subscribe to our newsletter for the latest updates.</p>
-          <form className="flex justify-center md:justify-start" onSubmit={handleSubscribe}>
-            <input 
-              type="email" 
-              placeholder="Your email" 
-              className="bg-gray-800 text-white p-2 rounded-l outline-none focus:ring focus:ring-blue-500 w-2/3"
+          <h3 className="text-lg font-semibold text-white mb-4">Stay Updated</h3>
+          <p className="text-slate-400 mb-4">
+            Subscribe to our newsletter for product updates.
+          </p>
+
+          <form onSubmit={handleSubscribe} className="flex">
+            <input
+              type="email"
+              placeholder="Enter your email"
               required
+              className="flex-1 bg-[#111827] text-slate-200 px-4 py-2 rounded-l-lg outline-none border border-slate-700 focus:border-blue-500"
             />
-            <button 
-              type="submit" 
-              className="bg-blue-500 text-white p-2 rounded-r hover:bg-blue-600 transition-colors focus:outline-none"
+            <button
+              type="submit"
+              className="bg-blue-600 px-4 py-2 rounded-r-lg text-white font-semibold hover:bg-blue-700 transition"
             >
               Subscribe
             </button>
@@ -51,9 +71,9 @@ function Footer() {
         </div>
       </div>
 
-      {/* Footer Bottom */}
-      <div className="mt-10 border-t border-gray-700 pt-4 text-center text-gray-500">
-        &copy; {new Date().getFullYear()} taskphiles. All rights reserved.
+      {/* Bottom */}
+      <div className="border-t border-slate-800 py-6 text-center text-sm text-slate-500">
+        © {new Date().getFullYear()} taskphiles. All rights reserved.
       </div>
     </footer>
   );

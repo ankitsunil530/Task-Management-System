@@ -1,79 +1,68 @@
-import React from "react";
 import { FaTasks, FaUsers, FaBell, FaChartLine } from "react-icons/fa";
-import servicesbg from "../images/servicesbg.jpg"; // Make sure path is correct
 
 function Services() {
+  const services = [
+    {
+      icon: <FaTasks />,
+      title: "Task Management",
+      desc: "Create, assign, prioritize and organize tasks easily. Stay in control of every project.",
+    },
+    {
+      icon: <FaUsers />,
+      title: "Team Collaboration",
+      desc: "Collaborate in real-time with your team. Share updates and manage workflows seamlessly.",
+    },
+    {
+      icon: <FaBell />,
+      title: "Real-time Notifications",
+      desc: "Receive instant alerts for deadlines, updates, and important changes.",
+    },
+    {
+      icon: <FaChartLine />,
+      title: "Analytics & Reports",
+      desc: "Visualize productivity and performance with detailed analytics and reports.",
+    },
+  ];
+
   return (
-    <div
-      className="bg-cover bg-center min-h-screen flex items-center justify-center"
-      style={{ backgroundImage: `url(${servicesbg})` }}
-    >
-      {/* Dark overlay */}
-      <div className="bg-black bg-opacity-70 w-full h-full py-20 px-6">
-        <div className="max-w-7xl mx-auto text-center">
-          {/* Heading */}
-          <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6">
-            Our <span className="text-indigo-400">Services</span>
-          </h1>
-          <p className="text-lg md:text-xl max-w-3xl text-gray-200 mx-auto mb-16">
-            We provide everything you need to stay on top of your tasks and boost
-            team productivity. Whether you're working solo or with a team,
-            TaskMaster has the right tools for you.
-          </p>
+    <main className="bg-[#0B1120] text-slate-300 min-h-screen pt-24">
+      <div className="max-w-7xl mx-auto px-6 py-16 text-center">
 
-          {/* Services grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-            {/* Service 1 */}
-            <div className="bg-gradient-to-br from-white to-gray-100 shadow-lg rounded-2xl p-8 transform hover:-translate-y-2 hover:shadow-2xl transition duration-300">
-              <FaTasks className="text-5xl text-indigo-600 mx-auto mb-6" />
-              <h2 className="text-2xl font-bold text-gray-800 mb-3">
-                Task Management
-              </h2>
-              <p className="text-gray-600">
-                Create, assign, and organize tasks easily. Track progress and
-                complete work on time without hassle.
+        {/* Heading */}
+        <span className="inline-block mb-4 px-4 py-1 text-sm rounded-full bg-blue-900/40 text-blue-400">
+          Our Services
+        </span>
+
+        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
+          Everything you need to manage work smarter
+        </h1>
+
+        <p className="max-w-3xl mx-auto text-slate-400 mb-16">
+          taskphiles provides powerful tools to organize tasks, improve team
+          collaboration, and track productivity — all in one modern platform.
+        </p>
+
+        {/* Services Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {services.map((service, i) => (
+            <div
+              key={i}
+              className="bg-[#111827] border border-slate-800 rounded-2xl p-8 hover:border-blue-500/40 hover:shadow-xl transition"
+            >
+              <div className="text-4xl text-blue-400 mb-5 flex justify-center">
+                {service.icon}
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                {service.title}
+              </h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                {service.desc}
               </p>
             </div>
-
-            {/* Service 2 */}
-            <div className="bg-gradient-to-br from-white to-gray-100 shadow-lg rounded-2xl p-8 transform hover:-translate-y-2 hover:shadow-2xl transition duration-300">
-              <FaUsers className="text-5xl text-indigo-600 mx-auto mb-6" />
-              <h2 className="text-2xl font-bold text-gray-800 mb-3">
-                Team Collaboration
-              </h2>
-              <p className="text-gray-600">
-                Work seamlessly with your team. Assign tasks, share updates, and
-                collaborate in real-time with ease.
-              </p>
-            </div>
-
-            {/* Service 3 */}
-            <div className="bg-gradient-to-br from-white to-gray-100 shadow-lg rounded-2xl p-8 transform hover:-translate-y-2 hover:shadow-2xl transition duration-300">
-              <FaBell className="text-5xl text-indigo-600 mx-auto mb-6" />
-              <h2 className="text-2xl font-bold text-gray-800 mb-3">
-                Real-time Notifications
-              </h2>
-              <p className="text-gray-600">
-                Stay updated instantly with task alerts, deadline reminders, and
-                important project notifications.
-              </p>
-            </div>
-
-            {/* Service 4 */}
-            <div className="bg-gradient-to-br from-white to-gray-100 shadow-lg rounded-2xl p-8 transform hover:-translate-y-2 hover:shadow-2xl transition duration-300">
-              <FaChartLine className="text-5xl text-indigo-600 mx-auto mb-6" />
-              <h2 className="text-2xl font-bold text-gray-800 mb-3">
-                Analytics & Reports
-              </h2>
-              <p className="text-gray-600">
-                Get detailed insights with reports and analytics to measure
-                productivity and track your progress.
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 

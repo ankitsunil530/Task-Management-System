@@ -1,116 +1,109 @@
-import React, { useState } from 'react';
-import contactbg from '../images/contactbg.jpg'; // Ensure the path to your background image is correct
+import { useState } from "react";
 
 function ContactUs() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
 
   function handleSubmit(e) {
-    e.preventDefault(); // Prevent page reload
+    e.preventDefault();
     if (!name || !email || !message) {
       alert("Please fill out all fields.");
       return;
     }
-    alert(`✅ Message sent!\n\nName: ${name}\nEmail: ${email}\nMessage: ${message}`);
-    setName('');
-    setEmail('');
-    setMessage('');
+    alert("✅ Message sent successfully!");
+    setName("");
+    setEmail("");
+    setMessage("");
   }
 
   return (
-    <div
-      className="bg-cover bg-center min-h-screen py-16"
-      style={{ backgroundImage: `url(${contactbg})` }}
-    >
-      <div className="bg-black bg-opacity-60 min-h-screen py-16 flex items-center">
-        <div className="container mx-auto px-6">
-          <h1 className="text-5xl font-extrabold text-white text-center mb-12 drop-shadow-lg">
-            Contact Us
+    <main className="bg-[#0B1120] text-slate-300 min-h-screen pt-24">
+      <div className="max-w-7xl mx-auto px-6 py-16">
+
+        {/* Heading */}
+        <div className="text-center mb-14">
+          <span className="inline-block mb-3 px-4 py-1 text-sm rounded-full bg-blue-900/40 text-blue-400">
+            Contact
+          </span>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">
+            Get in touch with us
           </h1>
+          <p className="text-slate-400 max-w-2xl mx-auto">
+            Have questions, feedback, or partnership ideas? We'd love to hear from you.
+          </p>
+        </div>
 
-          <div className="flex flex-col md:flex-row justify-between items-start gap-10">
-            {/* Left side - Contact Form */}
-            <div className="bg-white/90 p-8 rounded-lg shadow-xl w-full md:w-1/2">
-              <h2 className="text-3xl font-bold mb-6 text-gray-800">Get in Touch</h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2" htmlFor="name">
-                    Full Name
-                  </label>
-                  <input
-                    className="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none"
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your Name"
-                    required
-                  />
-                </div>
+        <div className="grid md:grid-cols-2 gap-12">
 
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2" htmlFor="email">
-                    Email Address
-                  </label>
-                  <input
-                    className="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none"
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Your Email"
-                    required
-                  />
-                </div>
+          {/* Form */}
+          <div className="bg-[#111827] border border-slate-800 rounded-2xl p-8 shadow-xl">
+            <h2 className="text-2xl font-semibold text-white mb-6">Send a message</h2>
 
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2" htmlFor="message">
-                    Message
-                  </label>
-                  <textarea
-                    className="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none"
-                    id="message"
-                    rows="4"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Your Message"
-                    required
-                  />
-                </div>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block mb-1 text-sm">Full Name</label>
+                <input
+                  className="w-full bg-[#0B1120] border border-slate-700 rounded-lg px-4 py-2 outline-none focus:border-blue-500"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Your name"
+                  required
+                />
+              </div>
 
-                <button
-                  type="submit"
-                  className="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition duration-300"
-                >
-                  Send Message
-                </button>
-              </form>
-            </div>
+              <div>
+                <label className="block mb-1 text-sm">Email address</label>
+                <input
+                  type="email"
+                  className="w-full bg-[#0B1120] border border-slate-700 rounded-lg px-4 py-2 outline-none focus:border-blue-500"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                />
+              </div>
 
-            {/* Right side - Contact Info */}
-            <div className="text-white w-full md:w-1/2">
-              <h2 className="text-3xl font-bold mb-6">Contact Information</h2>
-              <p className="text-lg mb-4">
-                If you have any questions or inquiries, feel free to contact us through the form or reach out to us at the details below:
-              </p>
-              <p className="text-lg mb-2">
-                <strong>📍 Address:</strong> 123 Task Management St, Lucknow, UP, India
-              </p>
-              <p className="text-lg mb-2">
-                <strong>📧 Email:</strong> support@taskmanagement.com
-              </p>
-              <p className="text-lg mb-2">
-                <strong>📞 Phone:</strong> +91 9876543210
-              </p>
-              <p className="text-lg mt-4">
-                🕘 Available from <strong>Monday to Friday, 9 AM - 6 PM</strong>
-              </p>
+              <div>
+                <label className="block mb-1 text-sm">Message</label>
+                <textarea
+                  rows="4"
+                  className="w-full bg-[#0B1120] border border-slate-700 rounded-lg px-4 py-2 outline-none focus:border-blue-500"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Write your message..."
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition"
+              >
+                Send message
+              </button>
+            </form>
+          </div>
+
+          {/* Info */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold text-white">Contact information</h2>
+
+            <p className="text-slate-400">
+              Reach out to us anytime. Our support team is available to help you with any questions.
+            </p>
+
+            <div className="space-y-3 text-slate-300">
+              <p>📍 Lucknow, Uttar Pradesh, India</p>
+              <p>📧 support@taskphiles.com</p>
+              <p>📞 +91 98765 43210</p>
+              <p>🕘 Mon – Fri, 9 AM – 6 PM</p>
             </div>
           </div>
+
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 

@@ -1,59 +1,69 @@
-import React from 'react';
-import aboutbg from '../images/aboutbg.jpg';
-import aboutImage from '../images/aboutImage.jpg';
+import aboutImage from "../images/aboutImage.jpg";
 
 function AboutUs() {
   return (
-    <div
-      className="bg-cover bg-center min-h-screen"
-      style={{ backgroundImage: `url(${aboutbg})` }}
-    >
-      <div className="bg-black bg-opacity-50 min-h-screen flex justify-center items-center p-10">
-        <div className="container mx-auto flex flex-col md:flex-row items-center">
-          
-          {/* Left: Image */}
-          <div className="md:w-1/2 mb-8 md:mb-0 flex justify-center">
-            <img
-              src={aboutImage}
-              alt="About Task Management System"
-              className="rounded-lg shadow-lg max-h-[400px] object-cover"
-            />
-          </div>
+    <main className="bg-[#0B1120] text-slate-300 min-h-screen pt-24">
+      <div className="max-w-7xl mx-auto px-6 py-16 grid md:grid-cols-2 gap-12 items-center">
 
-          {/* Right: Content */}
-          <div className="md:w-1/2 text-white md:pl-10 bg-gray-900/60 p-6 rounded-lg shadow-lg">
-            <h1 className="text-5xl font-extrabold text-center md:text-left mb-6">
-              About Us
-            </h1>
-            <div className="space-y-4 text-center md:text-left">
-              <p className="text-xl leading-relaxed">
-                Welcome to our Task Management System! We provide an efficient
-                platform where users can register, log in, and manage their tasks
-                seamlessly. Whether it's a simple to-do list or complex project
-                management, our platform empowers you to stay organized and on top
-                of your tasks.
-              </p>
-              <p className="text-lg leading-relaxed">
-                We are constantly improving the platform to make it more
-                user-friendly, intuitive, and feature-rich. Our system offers task
-                creation, task assignment, deadline tracking, and real-time
-                notifications to keep you informed at every step. We're also focused
-                on building a highly customizable and scalable solution that fits
-                individual users and teams alike.
-              </p>
-              <p className="text-lg leading-relaxed">
-                Our vision is to streamline task management, reduce complexity, and
-                help our users achieve their goals more efficiently. We're committed
-                to providing a system that grows with your needs, supporting you
-                with features like priority setting, task filtering, and advanced
-                reporting tools.
-              </p>
-            </div>
-          </div>
+        {/* Left Content */}
+        <div>
+          <span className="inline-block mb-3 px-4 py-1 text-sm rounded-full bg-blue-900/40 text-blue-400">
+            About taskphiles
+          </span>
 
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
+            Built to simplify task management
+          </h1>
+
+          <p className="mb-4 text-slate-400 leading-relaxed">
+            taskphiles is a modern task management platform designed to help
+            individuals and teams stay organized, focused, and productive.
+            From simple to-do lists to complex project workflows, our system
+            adapts to your needs.
+          </p>
+
+          <p className="mb-4 text-slate-400 leading-relaxed">
+            We provide features such as task creation, assignments, deadlines,
+            real-time updates, and progress tracking — all in a clean and
+            intuitive interface.
+          </p>
+
+          <p className="text-slate-400 leading-relaxed">
+            Our mission is to remove complexity from daily planning and empower
+            users with tools that grow alongside their goals.
+          </p>
+        </div>
+
+        {/* Right Image */}
+        <div className="flex justify-center">
+          <img
+            src={aboutImage}
+            alt="About taskphiles"
+            className="rounded-2xl shadow-2xl w-full max-w-md border border-slate-800"
+          />
         </div>
       </div>
-    </div>
+
+      {/* Stats Section */}
+      <section className="border-t border-slate-800 py-16">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+
+          {[
+            { value: "10K+", label: "Tasks Managed" },
+            { value: "1K+", label: "Users" },
+            { value: "99.9%", label: "Uptime" },
+            { value: "24/7", label: "Support" },
+          ].map((stat, i) => (
+            <div key={i}>
+              <h3 className="text-3xl font-bold text-white mb-2">
+                {stat.value}
+              </h3>
+              <p className="text-slate-400">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }
 

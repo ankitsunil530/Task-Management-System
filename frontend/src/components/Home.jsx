@@ -1,100 +1,122 @@
-import Footer from "./Footer";
-import Header from "./Header";
 import { useNavigate } from "react-router-dom";
 
 function Home() {
   const navigate = useNavigate();
-  function handleSign() {
-    navigate("/signup");
-  }
 
   return (
-    <>
-      <main className="min-h-screen bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300">
-        {/* Hero Section */}
-        <section className="flex flex-col md:flex-row items-center justify-between px-10 py-20 max-w-7xl mx-auto">
-          {/* Left Side - Text */}
-          <div className="md:w-1/2 text-center md:text-left">
-            <h1 className="text-5xl md:text-6xl font-extrabold text-gray-800 leading-tight">
-              Stay Organized, <br />
-              <span className="text-blue-600">Stay Productive</span>
-            </h1>
-            <p className="text-lg md:text-xl text-gray-600 mt-6 mb-8 max-w-lg">
-              Manage your tasks effortlessly with <span className="font-semibold">TaskMaster</span>. Plan, track, and collaborate efficiently to get things done faster.
-            </p>
+    <main className="bg-[#0B1120] text-slate-200">
+      {/* HERO */}
+      <section className="max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center">
+        <div>
+          <span className="inline-block mb-4 px-4 py-1 text-sm font-semibold rounded-full bg-blue-900/40 text-blue-400">
+            🚀 Task Management Simplified
+          </span>
+
+          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight text-white">
+            Manage work. <br />
+            <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+              Ship faster.
+            </span>
+          </h1>
+
+          <p className="mt-6 text-lg text-slate-400 max-w-xl">
+            TaskMaster helps teams organize tasks, collaborate efficiently, and
+            track progress — all in one powerful platform.
+          </p>
+
+          <div className="mt-8 flex flex-col sm:flex-row gap-4">
             <button
-              className="bg-blue-600 text-white px-8 py-3 rounded-full text-lg font-medium hover:bg-blue-700 transition focus:outline-none"
-              onClick={handleSign}
+              onClick={() => navigate("/register")}
+              className="px-8 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
             >
-              Get Started
+              Get Started Free
+            </button>
+
+            <button
+              onClick={() => navigate("/login")}
+              className="px-8 py-3 rounded-lg border border-slate-600 hover:bg-slate-800 transition"
+            >
+              Login
             </button>
           </div>
+        </div>
 
-          {/* Right Side - Illustration / Image */}
-          <div className="md:w-1/2 mt-12 md:mt-0 flex justify-center">
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/2921/2921222.png"
-              alt="Task Management Illustration"
-              className="w-80 md:w-96 drop-shadow-lg"
-            />
-          </div>
-        </section>
+        <div className="flex justify-center">
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/2921/2921222.png"
+            alt="dashboard"
+            className="w-[320px] md:w-[420px] drop-shadow-2xl"
+          />
+        </div>
+      </section>
 
-        {/* Features Section */}
-        <section className="py-20 px-6 bg-white shadow-inner">
-          <h2 className="text-4xl font-bold text-center text-gray-800 mb-12">
-            Why Choose <span className="text-blue-600">TaskMaster?</span>
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-            {/* Feature 1 */}
-            <div className="bg-gradient-to-tr from-blue-50 to-white p-8 rounded-2xl shadow hover:shadow-lg transition">
-              <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-                📌 Task Management
+      {/* TRUST */}
+      <section className="py-12 bg-[#0F172A] border-y border-slate-800">
+        <p className="text-center text-slate-500 mb-6">
+          Trusted by students & developers building modern projects
+        </p>
+        <div className="flex justify-center gap-10 text-slate-500 text-sm font-semibold">
+          <span>IIITDM</span>
+          <span>Open Source</span>
+          <span>Developers</span>
+          <span>Startups</span>
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section className="max-w-7xl mx-auto px-6 py-24">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-14 text-white">
+          Everything you need to stay productive
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-8">
+          {[
+            {
+              title: "Smart Task Management",
+              desc: "Create, update, prioritize and manage tasks with a clean interface.",
+              icon: "📌",
+            },
+            {
+              title: "Team Collaboration",
+              desc: "Assign tasks, set deadlines and work together in real time.",
+              icon: "🤝",
+            },
+            {
+              title: "Progress Analytics",
+              desc: "Track task status and visualize productivity trends easily.",
+              icon: "📊",
+            },
+          ].map((f, i) => (
+            <div
+              key={i}
+              className="bg-[#111827] p-8 rounded-2xl border border-slate-800 hover:border-blue-500/50 hover:shadow-xl transition"
+            >
+              <div className="text-3xl mb-4">{f.icon}</div>
+              <h3 className="text-xl font-semibold mb-3 text-white">
+                {f.title}
               </h3>
-              <p className="text-gray-600">
-                Organize your tasks efficiently with an intuitive interface. Add, edit, and prioritize tasks seamlessly.
-              </p>
+              <p className="text-slate-400">{f.desc}</p>
             </div>
+          ))}
+        </div>
+      </section>
 
-            {/* Feature 2 */}
-            <div className="bg-gradient-to-tr from-green-50 to-white p-8 rounded-2xl shadow hover:shadow-lg transition">
-              <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-                🤝 Collaboration
-              </h3>
-              <p className="text-gray-600">
-                Work with your team in real-time. Assign tasks, set deadlines, and keep everyone aligned.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="bg-gradient-to-tr from-purple-50 to-white p-8 rounded-2xl shadow hover:shadow-lg transition">
-              <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-                📊 Progress Tracking
-              </h3>
-              <p className="text-gray-600">
-                Stay informed with progress updates and visual reports to track tasks and projects effectively.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Call to Action */}
-        <section className="py-20 px-6 text-center bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-          <h2 className="text-4xl font-bold mb-4">
-            Boost Your Productivity Now 🚀
-          </h2>
-          <p className="text-lg mb-8">
-            Join TaskMaster today and start managing your tasks better, faster, and smarter.
-          </p>
-          <button
-            className="bg-white text-blue-600 px-8 py-3 rounded-full text-lg font-medium hover:bg-gray-100 transition"
-            onClick={handleSign}
-          >
-            Sign Up Free
-          </button>
-        </section>
-      </main>
-    </>
+      {/* CTA */}
+      <section className="bg-gradient-to-r from-blue-700 to-purple-700 text-white py-20 text-center px-6">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          Start organizing your work today
+        </h2>
+        <p className="text-lg mb-8 text-blue-200">
+          Free to use. No credit card required.
+        </p>
+        <button
+          onClick={() => navigate("/register")}
+          className="bg-white text-blue-700 px-8 py-3 rounded-lg font-semibold hover:bg-slate-100 transition"
+        >
+          Create Free Account
+        </button>
+      </section>
+    </main>
   );
 }
 
