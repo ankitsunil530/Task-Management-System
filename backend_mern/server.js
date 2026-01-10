@@ -40,6 +40,7 @@ const allowedOrigins = isDev
       "http://localhost:5173",
       "http://127.0.0.1:5173",
       "http://localhost:8000",
+      "https://task-management-system-tawny-eta.vercel.app",
     ]
   : process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
