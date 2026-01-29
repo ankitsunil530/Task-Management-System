@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://task-management-backend-green-delta.vercel.app/api",
+  baseURL: "http://localhost:8000/api"|| import.meta.env.VITE_API_URL,
  
 });
 

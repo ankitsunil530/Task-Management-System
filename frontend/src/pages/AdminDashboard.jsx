@@ -8,6 +8,12 @@ import { logout } from "../features/auth/authSlice";
 import { getAllTasks } from "../features/tasks/taskSlice";
 
 import TaskCard from "../components/TaskCard";
+import KanbanBoard from "./KanbanBoard";
+
+// Charts
+import StatusPieChart from "../components/charts/StatusPieChart";
+import PriorityBarChart from "../components/charts/PriorityBarChart";
+import OverdueChart from "../components/charts/OverdueChart";
 
 export default function AdminDashboard() {
   const dispatch = useDispatch();
@@ -16,11 +22,24 @@ export default function AdminDashboard() {
   const { list: tasks, isLoading } = useSelector((s) => s.tasks);
   const { user } = useSelector((s) => s.auth);
 
+  const [view, setView] = useState("list"); // list | kanban
+
+  // ✅ SAFE INITIAL STATS (VERY IMPORTANT)
   const [stats, setStats] = useState({
     total: 0,
     completed: 0,
     pending: 0,
     overdue: 0,
+    statusCount: {
+      todo: 0,
+      "in-progress": 0,
+      done: 0,
+    },
+    priorityCount: {
+      low: 0,
+      medium: 0,
+      high: 0,
+    },
   });
 
   /* ================= FETCH STATS ================= */
@@ -29,7 +48,7 @@ export default function AdminDashboard() {
       try {
         const res = await api.get("/tasks/stats");
         setStats(res.data.data);
-      } catch (error) {
+      } catch {
         toast.error("Failed to load admin stats");
       }
     };
@@ -86,12 +105,8 @@ export default function AdminDashboard() {
               className="w-28 h-28 rounded-full mx-auto mb-4 border border-gray-700"
             />
 
-            <h2 className="font-semibold text-lg">
-              {user?.name}
-            </h2>
-            <p className="text-sm text-gray-400">
-              {user?.email}
-            </p>
+            <h2 className="font-semibold text-lg">{user?.name}</h2>
+            <p className="text-sm text-gray-400">{user?.email}</p>
 
             <span className="inline-block mt-3 text-xs bg-indigo-600/20 text-indigo-400 px-3 py-1 rounded-full">
               Administrator
@@ -101,7 +116,7 @@ export default function AdminDashboard() {
           {/* ========== CONTENT AREA ========== */}
           <div className="lg:col-span-3 space-y-8">
 
-            {/* STATS CARDS */}
+            {/* ===== STATS CARDS ===== */}
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <StatCard title="Total Tasks" value={stats.total} color="bg-blue-600" />
               <StatCard title="Completed" value={stats.completed} color="bg-green-600" />
@@ -109,24 +124,59 @@ export default function AdminDashboard() {
               <StatCard title="Overdue" value={stats.overdue} color="bg-red-600" />
             </div>
 
-            {/* TASK LIST */}
-            <div>
-              <h2 className="text-xl font-semibold mb-4">
-                All Tasks
-              </h2>
+            {/* ===== CHARTS ===== */}
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <StatusPieChart data={stats.statusCount} />
+              <PriorityBarChart data={stats.priorityCount} />
+              <OverdueChart
+                overdue={stats.overdue}
+                completed={stats.completed}
+              />
+            </div>
 
-              {tasks.length === 0 ? (
-                <p className="text-gray-400 text-sm">
-                  No tasks available.
-                </p>
+            {/* ===== HEADER + VIEW TOGGLE ===== */}
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">All Tasks</h2>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setView("list")}
+                  className={`px-3 py-1 text-sm rounded ${
+                    view === "list"
+                      ? "bg-indigo-600"
+                      : "bg-gray-800 hover:bg-gray-700"
+                  }`}
+                >
+                  List View
+                </button>
+
+                <button
+                  onClick={() => setView("kanban")}
+                  className={`px-3 py-1 text-sm rounded ${
+                    view === "kanban"
+                      ? "bg-indigo-600"
+                      : "bg-gray-800 hover:bg-gray-700"
+                  }`}
+                >
+                  Kanban View
+                </button>
+              </div>
+            </div>
+
+            {/* ===== TASK CONTENT ===== */}
+            {view === "list" ? (
+              tasks.length === 0 ? (
+                <p className="text-gray-400 text-sm">No tasks available.</p>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {tasks.map((task) => (
                     <TaskCard key={task._id} task={task} />
                   ))}
                 </div>
-              )}
-            </div>
+              )
+            ) : (
+              <KanbanBoard />
+            )}
 
           </div>
         </div>

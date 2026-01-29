@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteTask } from "../features/tasks/taskSlice";
-import { toast } from "react-toastify";
 
 import StatusDropdown from "./StatusDropdown";
 import AssignTaskModal from "./AssignTaskModal";
@@ -14,6 +13,7 @@ export default function TaskCard({ task }) {
   const isAdmin = user?.role === "admin";
   const [openAssign, setOpenAssign] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+
   const badge =
     task.notification?.type === "overdue"
       ? "bg-red-500/10 text-red-400"
@@ -21,15 +21,18 @@ export default function TaskCard({ task }) {
       ? "bg-yellow-500/10 text-yellow-400"
       : "bg-gray-700 text-gray-300";
 
-    const handleDelete = () => {
+  const assignedName =
+    typeof task.assignedTo === "object"
+      ? task.assignedTo?.name
+      : "You";
+
+  const handleDelete = () => {
     dispatch(deleteTask(task._id));
-    toast.success(isAdmin ? "Task deleted by admin" : "Task deleted");
     setConfirmDelete(false);
   };
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <h3 className="font-semibold text-white">{task.title}</h3>
@@ -45,25 +48,29 @@ export default function TaskCard({ task }) {
       <p className="text-xs text-gray-400 mt-2">
         Assigned to:{" "}
         <span className="text-gray-200 font-medium">
-          {task.assignedTo?.name || "Unassigned"}
+          {assignedName}
         </span>
       </p>
 
       {/* FOOTER */}
       <div className="flex justify-between items-center mt-4">
+        <div>
+          <span className="text-xs text-gray-500">
+            Priority: {task.priority}
+          </span>
 
-        {/* LEFT */}
-        <span className="text-xs text-gray-500">
-          Priority: {task.priority}
-        </span>
+          {task.deadline && (
+            <span className="text-xs text-gray-500 ml-3">
+              Due: {new Date(task.deadline).toLocaleDateString()}
+            </span>
+          )}
+        </div>
 
-        {/* RIGHT ACTIONS */}
         <div className="flex items-center gap-2">
-
-          {/* STATUS (USER + ADMIN) */}
+          {/* STATUS */}
           <StatusDropdown task={task} />
 
-          {/* ADMIN: ASSIGN */}
+          {/* ADMIN ASSIGN */}
           {isAdmin && (
             <button
               onClick={() => setOpenAssign(true)}
@@ -72,6 +79,7 @@ export default function TaskCard({ task }) {
               Assign
             </button>
           )}
+
           <button
             onClick={() => setConfirmDelete(true)}
             className="text-xs text-red-400 hover:text-red-600"
@@ -79,20 +87,17 @@ export default function TaskCard({ task }) {
             Delete
           </button>
 
-           {/* DELETE CONFIRM MODAL */}
-      {confirmDelete && (
-        <ConfirmDeleteModal
-          title="Delete Task?"
-          message="This task will be permanently deleted."
-          onConfirm={handleDelete}
-          onCancel={() => setConfirmDelete(false)}
-        />
-      )}
-
+          {confirmDelete && (
+            <ConfirmDeleteModal
+              title="Delete Task?"
+              message="This task will be permanently deleted."
+              onConfirm={handleDelete}
+              onCancel={() => setConfirmDelete(false)}
+            />
+          )}
         </div>
       </div>
 
-      {/* ASSIGN MODAL */}
       {openAssign && (
         <AssignTaskModal
           task={task}

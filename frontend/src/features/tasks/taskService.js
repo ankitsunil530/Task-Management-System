@@ -10,8 +10,8 @@ export const createTaskAPI = async (data) => {
   return res.data.data;
 };
 
-export const updateTaskStatusAPI = async ({ id, status }) => {
-  const res = await api.patch(`/tasks/${id}/status`, { status });
+export const updateTaskAPI = async ({ id, data }) => {
+  const res = await api.put(`/tasks/${id}`, data);
   return res.data.data;
 };
 
@@ -19,6 +19,7 @@ export const deleteTaskAPI = async (id) => {
   await api.delete(`/tasks/${id}`);
   return id;
 };
+
 export const getAllTasksAPI = async () => {
   const res = await api.get("/tasks");
   return res.data.data;

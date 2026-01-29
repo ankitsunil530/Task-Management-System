@@ -2,6 +2,9 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import http from "http";
+import { Server } from "socket.io";
+
 import connectDB from "./db/db.js";
 import authRoute from "./routes/authRoute.js";
 import taskRoute from "./routes/taskRoutes.js";
@@ -48,15 +51,9 @@ const allowedOrigins = isDev
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // allow server-to-server & preflight
     if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      // ❗ DO NOT throw error (preflight break hota hai)
-      callback(null, false);
-    }
+    if (allowedOrigins.includes(origin)) callback(null, true);
+    else callback(null, false);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -64,7 +61,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // ✅ Preflight handler
+app.options("*", cors(corsOptions));
 
 /* ===============================
    🛡️ SECURITY MIDDLEWARE
@@ -134,11 +131,33 @@ app.use((err, req, res, next) => {
 });
 
 /* ===============================
-   🚀 SERVER START
+   🚀 HTTP + SOCKET SERVER START
 ================================ */
 const port = process.env.PORT || 5000;
 
-const server = app.listen(port, () => {
+const httpServer = http.createServer(app);
+
+export const io = new Server(httpServer, {
+  cors: {
+    origin: allowedOrigins,
+    credentials: true,
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("⚡ Socket connected:", socket.id);
+
+  socket.on("join", (userId) => {
+    socket.join(userId);
+    console.log(`👤 User joined room: ${userId}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("❌ Socket disconnected:", socket.id);
+  });
+});
+
+httpServer.listen(port, () => {
   console.log(`✅ Server running on port ${port} (${NODE_ENV})`);
 });
 
@@ -147,12 +166,12 @@ const server = app.listen(port, () => {
 ================================ */
 process.on("SIGTERM", () => {
   console.log("📛 SIGTERM received, shutting down...");
-  server.close(() => process.exit(0));
+  httpServer.close(() => process.exit(0));
 });
 
 process.on("SIGINT", () => {
   console.log("📛 SIGINT received, shutting down...");
-  server.close(() => process.exit(0));
+  httpServer.close(() => process.exit(0));
 });
 
 process.on("unhandledRejection", (reason) => {

@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useEffect } from "react";
+import { socket } from "./socket";
 
 // Public pages
 import Home from "./components/Home";
@@ -22,10 +24,28 @@ import ProtectedRoute from "./components/ProtectedRoute";
 function App() {
   const { user } = useSelector((state) => state.auth);
 
+  // ✅ SOCKET CONNECTION HANDLER
+  useEffect(() => {
+    if (user?._id) {
+      if (!socket.connected) {
+        socket.connect();
+      }
+
+      socket.emit("join", user._id);
+      console.log("🔌 Socket connected for user:", user._id);
+    }
+
+    return () => {
+      if (!user && socket.connected) {
+        socket.disconnect();
+        console.log("❌ Socket disconnected");
+      }
+    };
+  }, [user]);
+
   return (
     <Routes>
-
-      {/* ========== PUBLIC ROUTES (ALWAYS VISIBLE) ========== */}
+      {/* ========== PUBLIC ROUTES ========== */}
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="about" element={<AboutUs />} />
@@ -37,20 +57,27 @@ function App() {
       <Route
         path="/login"
         element={
-          user
-            ? <Navigate to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"} />
-            : <Login />
+          user ? (
+            <Navigate
+              to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"}
+            />
+          ) : (
+            <Login />
+          )
         }
       />
       <Route
         path="/register"
         element={
-          user
-            ? <Navigate to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"} />
-            : <Register />
+          user ? (
+            <Navigate
+              to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"}
+            />
+          ) : (
+            <Register />
+          )
         }
       />
-
 
       {/* ========== USER DASHBOARD ========== */}
       <Route
@@ -76,12 +103,15 @@ function App() {
       <Route
         path="*"
         element={
-          user
-            ? <Navigate to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"} />
-            : <Navigate to="/" />
+          user ? (
+            <Navigate
+              to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"}
+            />
+          ) : (
+            <Navigate to="/" />
+          )
         }
       />
-
     </Routes>
   );
 }

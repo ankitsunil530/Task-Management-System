@@ -2,11 +2,9 @@
   "name": "backend_mern",
   "version": "1.0.0",
   "private": true,
-
   "type": "module",
-
   "engines": {
-   "node": "24.x"
+    "node": "24.x"
   },
   "scripts": {
     "start": "node server.js",
@@ -14,12 +12,14 @@
   },
   "dependencies": {
     "bcryptjs": "2.4.3",
-    "cookie-parser": "1.4.6",
+    "cookie-parser": "^1.4.6",
     "cors": "2.8.5",
     "dotenv": "16.4.5",
     "express": "4.18.2",
-    "jsonwebtoken": "9.0.2",
     "express-async-handler": "1.2.0",
-    "mongoose": "7.5.0"
+    "jsonwebtoken": "9.0.2",
+    "mongoose": "7.5.0",
+    "socket.io": "^4.8.3",
+    "zod": "^4.3.6"
   }
 }

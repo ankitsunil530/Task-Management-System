@@ -8,6 +8,12 @@ import { logout } from "../features/auth/authSlice";
 
 import TaskCard from "../components/TaskCard";
 import CreateTaskModal from "../components/CreateTaskModal";
+import KanbanBoard from "./KanbanBoard";
+
+// Charts
+import StatusPieChart from "../components/charts/StatusPieChart";
+import PriorityBarChart from "../components/charts/PriorityBarChart";
+import OverdueChart from "../components/charts/OverdueChart";
 
 export default function UserDashboard() {
   const dispatch = useDispatch();
@@ -17,17 +23,19 @@ export default function UserDashboard() {
   const { user } = useSelector((s) => s.auth);
 
   const [openTaskModal, setOpenTaskModal] = useState(false);
+  const [view, setView] = useState("list"); // list | kanban
   const [profileImage, setProfileImage] = useState(
     localStorage.getItem("profileImage")
   );
 
   const notifiedRef = useRef(new Set());
 
+  /* ================= FETCH TASKS ================= */
   useEffect(() => {
     dispatch(getMyTasks());
   }, [dispatch]);
 
-  // 🔔 Notifications (once)
+  /* ================= NOTIFICATIONS ================= */
   useEffect(() => {
     list.forEach((task) => {
       if (!task.notification) return;
@@ -44,13 +52,13 @@ export default function UserDashboard() {
     });
   }, [list]);
 
-  // 🚪 Logout
+  /* ================= LOGOUT ================= */
   const handleLogout = () => {
     dispatch(logout());
     navigate("/");
   };
 
-  // 🖼 Profile Image Upload (local for now)
+  /* ================= PROFILE IMAGE ================= */
   const handleProfileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -62,6 +70,30 @@ export default function UserDashboard() {
     };
     reader.readAsDataURL(file);
   };
+
+  /* ================= USER STATS (FRONTEND) ================= */
+  const statusCount = list.reduce(
+    (acc, task) => {
+      acc[task.status] = (acc[task.status] || 0) + 1;
+      return acc;
+    },
+    { todo: 0, "in-progress": 0, done: 0 }
+  );
+
+  const priorityCount = list.reduce(
+    (acc, task) => {
+      acc[task.priority] = (acc[task.priority] || 0) + 1;
+      return acc;
+    },
+    { low: 0, medium: 0, high: 0 }
+  );
+
+  const overdueCount = list.filter(
+    (t) =>
+      t.deadline &&
+      new Date(t.deadline) < new Date() &&
+      t.status !== "done"
+  ).length;
 
   if (isLoading) return <p className="p-6">Loading dashboard...</p>;
 
@@ -87,12 +119,12 @@ export default function UserDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
-          {/* ========== PROFILE CARD ========== */}
+          {/* ========== USER PROFILE CARD ========== */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
             <img
               src={
                 profileImage ||
-                "https://ui-avatars.com/api/?name=" + user?.name
+                `https://ui-avatars.com/api/?name=${user?.name}`
               }
               alt="Profile"
               className="w-28 h-28 rounded-full mx-auto mb-4 object-cover border border-gray-700"
@@ -124,24 +156,67 @@ export default function UserDashboard() {
           </div>
 
           {/* ========== TASKS SECTION ========== */}
-          <div className="lg:col-span-3">
-            <h2 className="text-xl font-semibold mb-4">
-              My Tasks
-            </h2>
+          <div className="lg:col-span-3 space-y-6">
 
-            {list.length === 0 ? (
-              <div className="text-gray-400 text-sm">
-                No tasks yet. Create your first task 🚀
+            {/* ===== USER CHARTS ===== */}
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <StatusPieChart data={statusCount} />
+              <PriorityBarChart data={priorityCount} />
+              <OverdueChart
+                overdue={overdueCount}
+                completed={statusCount.done}
+              />
+            </div>
+
+            {/* ===== HEADER + ACTIONS ===== */}
+            <div className="flex flex-wrap justify-between items-center gap-3">
+              <h2 className="text-xl font-semibold">
+                My Tasks
+              </h2>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setView("list")}
+                  className={`px-3 py-1 text-sm rounded ${
+                    view === "list"
+                      ? "bg-indigo-600"
+                      : "bg-gray-800 hover:bg-gray-700"
+                  }`}
+                >
+                  List View
+                </button>
+
+                <button
+                  onClick={() => setView("kanban")}
+                  className={`px-3 py-1 text-sm rounded ${
+                    view === "kanban"
+                      ? "bg-indigo-600"
+                      : "bg-gray-800 hover:bg-gray-700"
+                  }`}
+                >
+                  Kanban View
+                </button>
               </div>
+            </div>
+
+            {/* ===== CONTENT ===== */}
+            {view === "list" ? (
+              list.length === 0 ? (
+                <div className="text-gray-400 text-sm">
+                  No tasks yet. Create your first task 🚀
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {list.map((task) => (
+                    <TaskCard key={task._id} task={task} />
+                  ))}
+                </div>
+              )
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {list.map((task) => (
-                  <TaskCard key={task._id} task={task} />
-                ))}
-              </div>
+              <KanbanBoard />
             )}
-          </div>
 
+          </div>
         </div>
       </main>
 
@@ -150,7 +225,7 @@ export default function UserDashboard() {
         © {new Date().getFullYear()} Task Management System — Built with MERN
       </footer>
 
-      {/* MODAL */}
+      {/* ================= MODAL ================= */}
       <CreateTaskModal
         open={openTaskModal}
         onClose={() => setOpenTaskModal(false)}
