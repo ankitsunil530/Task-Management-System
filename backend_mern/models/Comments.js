@@ -1,5 +1,4 @@
-const mongoose = require("mongoose");
-
+import mongoose from "mongoose";
 const commentSchema = new mongoose.Schema({
     taskId: {
         type: mongoose.Schema.Types.ObjectId,

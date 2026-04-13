@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
 
+//
+// ===== Subtask Schema =====
+//
 const subTaskSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -12,37 +15,94 @@ const subTaskSchema = new mongoose.Schema({
   },
 });
 
+//
+// ===== Comment Schema =====
+//
 const commentSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
+
   text: {
     type: String,
     required: true,
     trim: true,
+    maxlength: 500,
   },
+
+  mentions: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+
+  edited: {
+    type: Boolean,
+    default: false,
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
+//
+// ===== Activity Schema =====
+//
 const activitySchema = new mongoose.Schema({
-  action: String, // "status_changed", "assigned", "updated"
+  action: {
+    type: String,
+    enum: [
+      "created",
+      "status_changed",
+      "assigned",
+      "priority_changed",
+      "comment_added",
+      "updated",
+      "deleted",
+    ],
+    required: true,
+  },
+
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+
   oldValue: String,
   newValue: String,
+
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
+//
+// ===== Attachment Schema (Optional but PRO) =====
+//
+const attachmentSchema = new mongoose.Schema({
+  fileUrl: String,
+  fileName: String,
+
+  uploadedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+
+  uploadedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+//
+// ===== Main Task Schema =====
+//
 const taskSchema = new mongoose.Schema(
   {
     title: {
@@ -71,24 +131,66 @@ const taskSchema = new mongoose.Schema(
 
     deadline: Date,
 
+    //
+    // ===== Workspace / Team Support =====
+    //
+    workspace: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Workspace",
+    },
+
+    //
+    // ===== Creator =====
+    //
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
-    assignedTo: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
+    //
+    // ===== MULTI USER ASSIGNMENT (IMPORTANT) =====
+    //
+    assignedTo: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
 
+    //
+    // ===== Watchers (Notification subscribers) =====
+    //
+    watchers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
+    //
+    // ===== Subtasks =====
+    //
     subTasks: [subTaskSchema],
 
+    //
+    // ===== Comments =====
+    //
     comments: [commentSchema],
 
+    //
+    // ===== Activity Logs =====
+    //
     activityLogs: [activitySchema],
 
+    //
+    // ===== Attachments =====
+    //
+    attachments: [attachmentSchema],
+
+    //
+    // ===== Soft Delete =====
+    //
     isDeleted: {
       type: Boolean,
       default: false,
@@ -98,9 +200,10 @@ const taskSchema = new mongoose.Schema(
 );
 
 //
-// ===== Indexes for performance =====
+// ===== Indexes (VERY IMPORTANT FOR PERFORMANCE) =====
 //
 taskSchema.index({ assignedTo: 1 });
+taskSchema.index({ workspace: 1 });
 taskSchema.index({ status: 1 });
 taskSchema.index({ priority: 1 });
 taskSchema.index({ deadline: 1 });
