@@ -1,7 +1,7 @@
 
-⚠️ Important Notice for Contributors
+# ⚠️ Important Notice for Contributors
 
-This repository contains two backend folders:
+## This repository contains two backend folders:
 
 backend_mern/ ✅ Active backend (MongoDB + Express) — used in development and production.
 backend/ ❌ Legacy MySQL backend — maintained only for reference and not used by the application.
