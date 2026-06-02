@@ -1,5 +1,14 @@
 
+⚠️ Important Notice for Contributors
 
+This repository contains two backend folders:
+
+backend_mern/ ✅ Active backend (MongoDB + Express) — used in development and production.
+backend/ ❌ Legacy MySQL backend — maintained only for reference and not used by the application.
+
+All new issues, bug fixes, features, and pull requests should target the backend_mern/ folder unless explicitly mentioned by a maintainer.
+
+Pull requests that modify only the legacy backend/ folder may not be considered for project improvements.
 # Task Management System (MERN Stack)
 
 ## Project Overview
