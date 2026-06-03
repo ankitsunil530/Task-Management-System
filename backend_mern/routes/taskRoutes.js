@@ -7,6 +7,7 @@ import {
   createTask,
   getMyTasks,
   getAllTasks,
+  getTask,
   updateTask,
   deleteTask,
   assignTask,
@@ -30,6 +31,12 @@ router.post("/", protect, validate(createTaskSchema), createTask);
 
 // Get My Tasks
 router.get("/my", protect, getMyTasks);
+
+// Task Stats (Admin)
+router.get("/stats", protect, admin, getTaskStats);
+
+// Get Task Details
+router.get("/:id", protect, getTask);
 
 // Update Task
 router.put("/:id", protect, validate(updateTaskSchema), updateTask);
@@ -56,8 +63,5 @@ router.patch(
   validate(assignTaskSchema),
   assignTask
 );
-
-// Task Stats (Admin)
-router.get("/stats", protect, admin, getTaskStats);
 
 export default router;

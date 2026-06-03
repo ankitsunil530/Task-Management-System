@@ -112,7 +112,8 @@ export default function TaskCard({ task }) {
       {/* 🔥 TASK DETAIL (COMMENTS HERE) */}
       {openDetails && (
         <TaskDetailModal
-          task={task}
+          taskId={task._id}
+          initialTask={task}
           users={[]} // 👉 pass users here later
           onClose={() => setOpenDetails(false)}
         />
