@@ -312,8 +312,25 @@ export const assignTask = asyncHandler(async (req, res) => {
     throw new Error("userIds must be an array");
   }
 
+  // Verify every provided id is a valid ObjectId
+  const invalidIds = userIds.filter((uid) => !validateObjectId(uid));
+  if (invalidIds.length > 0) {
+    res.status(400);
+    throw new Error(`Invalid user id(s): ${invalidIds.join(", ")}`);
+  }
+
+  // Verify every provided user actually exists before assigning
+  const existingCount = await User.countDocuments({ _id: { $in: userIds } });
+  if (existingCount !== userIds.length) {
+    res.status(400);
+    throw new Error("One or more assigned users do not exist");
+  }
+
   const task = await Task.findById(id);
-  if (!task) throw new Error("Task not found");
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
 
   task.assignedTo = userIds;
 
