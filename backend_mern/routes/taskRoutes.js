@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import protect from "../middlewares/authWebToken.js";
 import admin from "../middlewares/adminMiddleware.js";
 import { validate } from "../middlewares/validate.js";
@@ -21,6 +21,7 @@ import {
   createTaskSchema,
   updateTaskSchema,
   assignTaskSchema,
+  addCommentSchema,
 } from "../validations/taskValidation.js";
 
 const router = express.Router();
@@ -49,16 +50,16 @@ router.put("/:id", protect, validate(updateTaskSchema), updateTask);
 router.delete("/:id", protect, deleteTask);
 
 // 🔥 Add Comment
-router.post("/:id/comment", protect, addComment);
+router.post("/:id/comment", protect, validate(addCommentSchema), addComment);
 
 // 🔥 Toggle Watcher (subscribe/unsubscribe)
 router.patch("/:id/watch", protect, toggleWatcher);
 
 
-// Get All Tasks (Admin)
+
 router.get("/", protect, admin, getAllTasks);
 
-// Assign Multiple Users (Admin)
+
 router.patch(
   "/:id/assign",
   protect,

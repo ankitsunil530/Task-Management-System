@@ -70,6 +70,11 @@ const buildTaskResponse = (task) => ({
     new Date(task.deadline) < new Date() &&
     task.status !== "done",
   notification: getTaskNotification(task),
+  activityLogs: task.activityLogs
+    ? [...task.activityLogs].sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      )
+    : [],
 });
 
 // 🔥 FIXED (array support)
@@ -111,6 +116,13 @@ export const createTask = asyncHandler(async (req, res) => {
     createdBy: req.user._id,
     assignedTo: [req.user._id], // 🔥 array
     watchers: [req.user._id], // 🔥 added
+    activityLogs: [
+      {
+        action: "created",
+        user: req.user._id,
+        newValue: title.trim(),
+      },
+    ],
   });
 
   const responseTask = buildTaskResponse(task);
@@ -222,6 +234,34 @@ export const getAllTasks = asyncHandler(async (req, res) => {
   });
 });
 
+/* ================= GET TASK DETAILS ================= */
+
+export const getTask = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  const task = await Task.findById(id)
+    .populate("createdBy", "name email")
+    .populate("assignedTo", "name email")
+    .populate("activityLogs.user", "name email");
+
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  checkPermission(task, req.user);
+
+  res.json({
+    success: true,
+    data: buildTaskResponse(task),
+  });
+});
+
 /* ================= UPDATE TASK ================= */
 
 export const updateTask = asyncHandler(async (req, res) => {
@@ -258,6 +298,8 @@ export const updateTask = asyncHandler(async (req, res) => {
   }
 
   // 🔥 Activity Logs
+  const updates = [];
+
   if (status && status !== task.status) {
     task.activityLogs.push({
       action: "status_changed",
@@ -278,9 +320,36 @@ export const updateTask = asyncHandler(async (req, res) => {
     task.priority = priority;
   }
 
-  if (title) task.title = title.trim();
-  if (description !== undefined) task.description = description;
-  if (deadline) task.deadline = deadline;
+  if (title && title.trim() !== task.title) {
+    updates.push(`Title: "${task.title}" → "${title.trim()}"`);
+    task.title = title.trim();
+  }
+
+  if (description !== undefined && description !== task.description) {
+    updates.push("Description updated");
+    task.description = description;
+  }
+
+  const originalDeadline = task.deadline ? new Date(task.deadline) : null;
+  const newDeadline = deadline ? new Date(deadline) : null;
+  if (
+    deadline &&
+    (!originalDeadline || originalDeadline.toISOString() !== newDeadline.toISOString())
+  ) {
+    updates.push(
+      `Deadline: "${originalDeadline?.toLocaleDateString() || "none"}" → "${newDeadline.toLocaleDateString()}"`
+    );
+    task.deadline = deadline;
+  }
+
+  if (updates.length > 0) {
+    task.activityLogs.push({
+      action: "updated",
+      user: req.user._id,
+      oldValue: updates.join("; "),
+      newValue: "Task fields updated",
+    });
+  }
 
   await task.save();
 
@@ -335,8 +404,25 @@ export const assignTask = asyncHandler(async (req, res) => {
     throw new Error("userIds must be an array");
   }
 
+  // Verify every provided id is a valid ObjectId
+  const invalidIds = userIds.filter((uid) => !validateObjectId(uid));
+  if (invalidIds.length > 0) {
+    res.status(400);
+    throw new Error(`Invalid user id(s): ${invalidIds.join(", ")}`);
+  }
+
+  // Verify every provided user actually exists before assigning
+  const existingCount = await User.countDocuments({ _id: { $in: userIds } });
+  if (existingCount !== userIds.length) {
+    res.status(400);
+    throw new Error("One or more assigned users do not exist");
+  }
+
   const task = await Task.findById(id);
-  if (!task) throw new Error("Task not found");
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
 
   task.assignedTo = userIds;
 

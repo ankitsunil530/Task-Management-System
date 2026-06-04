@@ -22,6 +22,11 @@ export const updateTaskAPI = async ({ id, data }) => {
   return res.data.data;
 };
 
+export const getTaskByIdAPI = async (id) => {
+  const res = await api.get(`/tasks/${id}`);
+  return res.data.data;
+};
+
 export const deleteTaskAPI = async (id) => {
   await api.delete(`/tasks/${id}`);
   return id;
