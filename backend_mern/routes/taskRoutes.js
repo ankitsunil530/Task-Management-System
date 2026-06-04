@@ -6,13 +6,14 @@ import { validate } from "../middlewares/validate.js";
 import {
   createTask,
   getMyTasks,
+  exportMyTasks,
   getAllTasks,
   updateTask,
   deleteTask,
   assignTask,
   getTaskStats,
-  addComment,        // 🔥 NEW
-  toggleWatcher,     // 🔥 NEW
+  addComment,        //  NEW
+  toggleWatcher,     //  NEW
 } from "../controllers/taskController.js";
 
 import {
@@ -30,6 +31,9 @@ router.post("/", protect, validate(createTaskSchema), createTask);
 
 // Get My Tasks
 router.get("/my", protect, getMyTasks);
+
+// Export My Tasks CSV
+router.get("/my/export", protect, exportMyTasks);
 
 // Update Task
 router.put("/:id", protect, validate(updateTaskSchema), updateTask);

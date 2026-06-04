@@ -5,6 +5,13 @@ export const getMyTasksAPI = async () => {
   return res.data.data;
 };
 
+export const exportMyTasksCSVAPI = async () => {
+  const res = await api.get("/tasks/my/export", {
+    responseType: "blob",
+  });
+  return res;
+};
+
 export const createTaskAPI = async (data) => {
   const res = await api.post("/tasks", data);
   return res.data.data;
