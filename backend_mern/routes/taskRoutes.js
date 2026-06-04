@@ -25,7 +25,7 @@ import {
 
 const router = express.Router();
 
-/* ================= USER ROUTES ================= */
+
 
 // Create Task
 router.post("/", protect, validate(createTaskSchema), createTask);
@@ -54,7 +54,6 @@ router.post("/:id/comment", protect, addComment);
 // 🔥 Toggle Watcher (subscribe/unsubscribe)
 router.patch("/:id/watch", protect, toggleWatcher);
 
-/* ================= ADMIN ROUTES ================= */
 
 // Get All Tasks (Admin)
 router.get("/", protect, admin, getAllTasks);
