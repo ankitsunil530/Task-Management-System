@@ -6,14 +6,15 @@ import { validate } from "../middlewares/validate.js";
 import {
   createTask,
   getMyTasks,
+  exportMyTasks,
   getAllTasks,
   getTask,
   updateTask,
   deleteTask,
   assignTask,
   getTaskStats,
-  addComment,        // 🔥 NEW
-  toggleWatcher,     // 🔥 NEW
+  addComment,        //  NEW
+  toggleWatcher,     //  NEW
 } from "../controllers/taskController.js";
 
 import {
@@ -25,13 +26,16 @@ import {
 
 const router = express.Router();
 
-/* ================= USER ROUTES ================= */
+
 
 // Create Task
 router.post("/", protect, validate(createTaskSchema), createTask);
 
 // Get My Tasks
 router.get("/my", protect, getMyTasks);
+
+// Export My Tasks CSV
+router.get("/my/export", protect, exportMyTasks);
 
 // Task Stats (Admin)
 router.get("/stats", protect, admin, getTaskStats);
@@ -51,12 +55,11 @@ router.post("/:id/comment", protect, validate(addCommentSchema), addComment);
 // 🔥 Toggle Watcher (subscribe/unsubscribe)
 router.patch("/:id/watch", protect, toggleWatcher);
 
-/* ================= ADMIN ROUTES ================= */
 
-// Get All Tasks (Admin)
+
 router.get("/", protect, admin, getAllTasks);
 
-// Assign Multiple Users (Admin)
+
 router.patch(
   "/:id/assign",
   protect,

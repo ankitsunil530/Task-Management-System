@@ -17,6 +17,52 @@ const MAX_LIMIT = 50;
 
 const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
+const csvEscape = (value) => {
+  if (value === null || value === undefined) return "";
+
+  const stringValue =
+    value instanceof Date
+      ? value.toISOString()
+      : String(value).replace(/\r?\n/g, " ");
+
+  return `"${stringValue.replace(/"/g, '""')}"`;
+};
+
+const formatDateForCsv = (value, includeTime = false) => {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return includeTime
+    ? date.toISOString().replace("T", " ").slice(0, 19)
+    : date.toISOString().slice(0, 10);
+};
+
+const buildTasksCsv = (tasks) => {
+  const headers = [
+    "Task Title",
+    "Description",
+    "Status",
+    "Priority",
+    "Due Date",
+    "Created Date",
+  ];
+
+  const rows = tasks.map((task) => [
+    csvEscape(task.title),
+    csvEscape(task.description || ""),
+    csvEscape(task.status),
+    csvEscape(task.priority),
+    csvEscape(formatDateForCsv(task.deadline)),
+    csvEscape(formatDateForCsv(task.createdAt, true)),
+  ]);
+
+  return [headers.map(csvEscape).join(","), ...rows.map((row) => row.join(","))].join(
+    "\r\n"
+  );
+};
+
 const buildTaskResponse = (task) => ({
   ...task._doc,
   isOverdue:
@@ -104,6 +150,25 @@ export const getMyTasks = asyncHandler(async (req, res) => {
     count: tasks.length,
     data: tasks.map(buildTaskResponse),
   });
+});
+
+/* ================= EXPORT MY TASKS CSV ================= */
+
+export const exportMyTasks = asyncHandler(async (req, res) => {
+  const tasks = await Task.find({
+    assignedTo: { $in: [req.user._id] },
+  })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const csv = `\uFEFF${buildTasksCsv(tasks)}`;
+  const fileName = `tasks_${new Date().toISOString().slice(0, 10)}.csv`;
+
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+  res.setHeader("Cache-Control", "no-store");
+
+  res.send(csv);
 });
 
 /* ================= GET ALL TASKS (ADMIN) ================= */

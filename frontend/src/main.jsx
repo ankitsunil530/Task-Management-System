@@ -12,7 +12,7 @@ import "./index.css";
 
 // 🌐 Axios global config
 axios.defaults.baseURL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 axios.defaults.withCredentials = true;
 
 ReactDOM.createRoot(document.getElementById("root")).render(

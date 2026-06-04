@@ -5,19 +5,20 @@ import generateToken from "../utils/generateToken.js";
 // ================= REGISTER =================
 export const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
+  const normalizedEmail = email?.trim().toLowerCase();
 
-  if (!name || !email || !password) {
+  if (!name || !normalizedEmail || !password) {
     res.status(400);
     throw new Error("All fields are required");
   }
 
-  const userExists = await User.findOne({ email });
+  const userExists = await User.findOne({ email: normalizedEmail });
   if (userExists) {
     res.status(409);
     throw new Error("User already exists");
   }
 
-  const user = await User.create({ name, email, password });
+  const user = await User.create({ name, email: normalizedEmail, password });
 
   res.status(201).json({
     success: true,
@@ -34,13 +35,14 @@ export const registerUser = asyncHandler(async (req, res) => {
 // ================= LOGIN =================
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
+  const normalizedEmail = email?.trim().toLowerCase();
 
-  if (!email || !password) {
+  if (!normalizedEmail || !password) {
     res.status(400);
     throw new Error("Email and password required");
   }
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: normalizedEmail });
 
   if (user && (await user.matchPassword(password))) {
     if (user.status !== "active") {

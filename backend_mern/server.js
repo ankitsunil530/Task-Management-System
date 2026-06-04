@@ -3,13 +3,18 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import http from "http";
+import path from "path";
+import { fileURLToPath } from "url";
 import { Server } from "socket.io";
 
 import connectDB from "./db/db.js";
 import authRoute from "./routes/authRoute.js";
 import taskRoute from "./routes/taskRoutes.js";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
 const NODE_ENV = process.env.NODE_ENV || "development";
