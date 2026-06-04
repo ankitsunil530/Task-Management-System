@@ -152,33 +152,6 @@ export const getMyTasks = asyncHandler(async (req, res) => {
   });
 });
 
-/* ================= GET TASK DETAILS ================= */
-
-export const getTask = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-
-  if (!validateObjectId(id)) {
-    res.status(400);
-    throw new Error("Invalid task id");
-  }
-
-  const task = await Task.findById(id)
-    .populate("createdBy", "name email")
-    .populate("assignedTo", "name email");
-
-  if (!task) {
-    res.status(404);
-    throw new Error("Task not found");
-  }
-
-  checkPermission(task, req.user);
-
-  res.json({
-    success: true,
-    data: buildTaskResponse(task),
-  });
-});
-
 /* ================= EXPORT MY TASKS CSV ================= */
 
 export const exportMyTasks = asyncHandler(async (req, res) => {
