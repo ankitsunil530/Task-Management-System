@@ -14,6 +14,17 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
     },
+    // Stable handle used to resolve @mentions in task comments. Stored lowercase
+    // and restricted to [a-z0-9_] at registration so it matches the @(\w+)
+    // tokens parsed from comment text. Sparse so users created before this field
+    // existed do not collide on the unique index.
+    username: {
+      type: String,
+      unique: true,
+      sparse: true,
+      lowercase: true,
+      trim: true,
+    },
     password: {
       type: String,
       required: true,

@@ -2,6 +2,25 @@ import asyncHandler from "express-async-handler";
 import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
 
+// Derive a unique, mention-friendly username at registration. Based on the email
+// local-part, lowercased and stripped to [a-z0-9_] so it matches the @(\w+)
+// tokens parsed from task comments. Falls back to "user" when the local part has
+// no usable characters, and appends a numeric suffix on collision. The sparse
+// unique index on User.username is the hard guarantee of uniqueness.
+const generateUniqueUsername = async (email, name) => {
+  const source = (String(email).split("@")[0] || name || "user").toLowerCase();
+  const base = source.replace(/[^a-z0-9_]/g, "").slice(0, 20) || "user";
+
+  let candidate = base;
+  let suffix = 0;
+  // eslint-disable-next-line no-await-in-loop
+  while (await User.exists({ username: candidate })) {
+    suffix += 1;
+    candidate = `${base}${suffix}`;
+  }
+  return candidate;
+};
+
 // ================= REGISTER =================
 export const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
@@ -18,7 +37,14 @@ export const registerUser = asyncHandler(async (req, res) => {
     throw new Error("User already exists");
   }
 
-  const user = await User.create({ name, email: normalizedEmail, password });
+  const username = await generateUniqueUsername(normalizedEmail, name);
+
+  const user = await User.create({
+    name,
+    email: normalizedEmail,
+    password,
+    username,
+  });
 
   res.status(201).json({
     success: true,
@@ -26,6 +52,7 @@ export const registerUser = asyncHandler(async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      username: user.username,
       role: user.role,
       token: generateToken(user._id),
     },
@@ -56,6 +83,7 @@ export const loginUser = asyncHandler(async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        username: user.username,
         role: user.role,
         token: generateToken(user._id),
       },
