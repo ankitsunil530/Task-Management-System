@@ -21,6 +21,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 // Auth guard
 import ProtectedRoute from "./components/ProtectedRoute";
 
+// Notification center (renders for logged-in users)
+import NotificationBell from "./components/NotificationBell";
+
 function App() {
   const { user } = useSelector((state) => state.auth);
 
@@ -80,75 +83,78 @@ function App() {
   }, [user]);
 
   return (
-    <Routes>
-      {/* ========== PUBLIC ROUTES ========== */}
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Home />} />
-        <Route path="about" element={<AboutUs />} />
-        <Route path="services" element={<Services />} />
-        <Route path="contact" element={<Contact />} />
-      </Route>
+    <>
+      {user && <NotificationBell />}
+      <Routes>
+        {/* ========== PUBLIC ROUTES ========== */}
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="about" element={<AboutUs />} />
+          <Route path="services" element={<Services />} />
+          <Route path="contact" element={<Contact />} />
+        </Route>
 
-      {/* ========== AUTH ROUTES ========== */}
-      <Route
-        path="/login"
-        element={
-          user ? (
-            <Navigate
-              to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"}
-            />
-          ) : (
-            <Login />
-          )
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          user ? (
-            <Navigate
-              to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"}
-            />
-          ) : (
-            <Register />
-          )
-        }
-      />
+        {/* ========== AUTH ROUTES ========== */}
+        <Route
+          path="/login"
+          element={
+            user ? (
+              <Navigate
+                to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"}
+              />
+            ) : (
+              <Login />
+            )
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            user ? (
+              <Navigate
+                to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"}
+              />
+            ) : (
+              <Register />
+            )
+          }
+        />
 
-      {/* ========== USER DASHBOARD ========== */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute role="user">
-            <UserDashboard />
-          </ProtectedRoute>
-        }
-      />
+        {/* ========== USER DASHBOARD ========== */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute role="user">
+              <UserDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* ========== ADMIN DASHBOARD ========== */}
-      <Route
-        path="/admin/dashboard"
-        element={
-          <ProtectedRoute role="admin">
-            <AdminDashboard />
-          </ProtectedRoute>
-        }
-      />
+        {/* ========== ADMIN DASHBOARD ========== */}
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* ========== FALLBACK ========== */}
-      <Route
-        path="*"
-        element={
-          user ? (
-            <Navigate
-              to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"}
-            />
-          ) : (
-            <Navigate to="/" />
-          )
-        }
-      />
-    </Routes>
+        {/* ========== FALLBACK ========== */}
+        <Route
+          path="*"
+          element={
+            user ? (
+              <Navigate
+                to={user.role === "admin" ? "/admin/dashboard" : "/dashboard"}
+              />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+      </Routes>
+    </>
   );
 }
 

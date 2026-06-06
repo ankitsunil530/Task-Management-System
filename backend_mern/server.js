@@ -10,6 +10,7 @@ import { Server } from "socket.io";
 import connectDB from "./db/db.js";
 import authRoute from "./routes/authRoute.js";
 import taskRoute from "./routes/taskRoutes.js";
+import notificationRoute from "./routes/notificationRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -90,6 +91,7 @@ if (isDev) {
 ================================ */
 app.use("/api/user", authRoute);
 app.use("/api/tasks", taskRoute);
+app.use("/api/notifications", notificationRoute);
 
 /* ===============================
    ❤️ HEALTH CHECK

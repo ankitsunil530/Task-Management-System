@@ -6,7 +6,13 @@ const Comments = ({ taskId, users = [] }) => {
   const [comments, setComments] = useState([]);
   const [text, setText] = useState("");
   const [showMentions, setShowMentions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Live autocomplete list: usernames matching what's typed after "@".
+  const filteredUsers = users.filter((u) =>
+    (u.username || "").toLowerCase().startsWith(mentionQuery)
+  );
 
   /* ================= FETCH COMMENTS ================= */
 
@@ -79,20 +85,26 @@ const Comments = ({ taskId, users = [] }) => {
     const value = e.target.value;
     setText(value);
 
-    const lastWord = value.split(" ").pop();
+    // When the current word starts with "@", capture the text after it as a
+    // live filter query; otherwise close the suggestion list.
+    const lastWord = value.split(/\s/).pop();
 
     if (lastWord.startsWith("@")) {
+      setMentionQuery(lastWord.slice(1).toLowerCase());
       setShowMentions(true);
     } else {
       setShowMentions(false);
+      setMentionQuery("");
     }
   };
 
   const handleSelectUser = (user) => {
-    const words = text.split(" ");
+    const words = text.split(/\s/);
     words.pop();
-    setText(words.join(" ") + " @" + user.username + " ");
+    const prefix = words.length ? `${words.join(" ")} ` : "";
+    setText(`${prefix}@${user.username} `);
     setShowMentions(false);
+    setMentionQuery("");
   };
 
   /* ================= UI ================= */
@@ -138,9 +150,9 @@ const Comments = ({ taskId, users = [] }) => {
         />
 
         {/* MENTION DROPDOWN */}
-        {showMentions && users.length > 0 && (
+        {showMentions && filteredUsers.length > 0 && (
           <div className="absolute bg-gray-800 border border-gray-700 w-full mt-1 rounded shadow z-10 max-h-40 overflow-y-auto">
-            {users.map((user) => (
+            {filteredUsers.map((user) => (
               <div
                 key={user._id}
                 onClick={() => handleSelectUser(user)}
