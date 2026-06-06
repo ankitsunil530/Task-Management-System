@@ -2,11 +2,13 @@ import asyncHandler from "express-async-handler";
 import mongoose from "mongoose";
 import Task from "../models/Task.js";
 import User from "../models/User.js";
+import Notification from "../models/Notification.js";
 import { getTaskNotification } from "../utils/taskNotification.js";
 import {
   emitTaskCreated,
   emitTaskUpdate,
   emitTaskDeleted,
+  emitNotification,
 } from "../utils/socket.js";
 
 const VALID_STATUS = ["todo", "in-progress", "done"];
@@ -463,6 +465,27 @@ export const addComment = asyncHandler(async (req, res) => {
   });
 
   await task.save();
+
+  // Notify mentioned users (excluding the comment author mentioning themselves).
+  // Persist a Notification per recipient, then push it to their personal room
+  // so it appears in real time and survives a page reload.
+  const recipientIds = mentionedIds.filter(
+    (mid) => mid.toString() !== req.user._id.toString()
+  );
+
+  if (recipientIds.length > 0) {
+    const created = await Notification.insertMany(
+      recipientIds.map((rid) => ({
+        recipient: rid,
+        sender: req.user._id,
+        type: "mention",
+        task: task._id,
+        message: `${req.user.name} mentioned you in a comment on "${task.title}"`,
+      }))
+    );
+
+    created.forEach((doc) => emitNotification(doc.recipient, doc));
+  }
 
   task.assignedTo.forEach((uid) => emitTaskUpdate(uid, task));
 

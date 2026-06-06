@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import { socket } from "../socket";
 import Avatar from "./Avatar";
 
@@ -7,28 +7,46 @@ const Comments = ({ taskId, users = [] }) => {
   const [comments, setComments] = useState([]);
   const [text, setText] = useState("");
   const [showMentions, setShowMentions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  // Self-fetched user list so the @mention dropdown works even when the
+  // parent doesn't pass a users prop (TaskCard currently passes users={[]}).
+  const [availableUsers, setAvailableUsers] = useState(users);
+
+  // Live autocomplete list: usernames matching what's typed after "@".
+  const filteredUsers = availableUsers.filter((u) =>
+    (u.username || "").toLowerCase().startsWith(mentionQuery)
+  );
 
   /* ================= FETCH COMMENTS ================= */
 
   const fetchComments = async () => {
     try {
-      const res = await axios.get(`/tasks/${taskId}/comments`, {
-        withCredentials: true,
-      });
-
-      setComments(res.data.data || res.data);
+      // Use GET /tasks/:id (which exists and embeds comments) rather than
+      // the non-existent GET /tasks/:id/comments endpoint.
+      const res = await api.get(`/tasks/${taskId}`);
+      setComments(res.data.data?.comments || []);
     } catch (err) {
-      console.error("❌ Failed to fetch comments", err);
+      console.error("Failed to fetch comments", err);
     }
   };
 
-  /* ================= SOCKET ================= */
+  /* ================= SOCKET + USERS ================= */
 
   useEffect(() => {
     if (!taskId) return;
 
     fetchComments();
+
+    // Self-fetch the user list for @mention autocomplete so the dropdown
+    // works even when the parent passes an empty users prop.
+    api
+      .get("/user/users")
+      .then((res) => {
+        const list = res.data?.data || res.data || [];
+        if (list.length > 0) setAvailableUsers(list);
+      })
+      .catch(() => {});
 
     socket.emit("joinTask", taskId);
 
@@ -57,10 +75,9 @@ const Comments = ({ taskId, users = [] }) => {
     try {
       setLoading(true);
 
-      const res = await axios.post(
+      const res = await api.post(
         `/tasks/${taskId}/comment`,
-        { text },
-        { withCredentials: true }
+        { text }
       );
 
       setComments((prev) => [...prev, res.data.data]);
@@ -80,20 +97,26 @@ const Comments = ({ taskId, users = [] }) => {
     const value = e.target.value;
     setText(value);
 
-    const lastWord = value.split(" ").pop();
+    // When the current word starts with "@", capture the text after it as a
+    // live filter query; otherwise close the suggestion list.
+    const lastWord = value.split(/\s/).pop();
 
     if (lastWord.startsWith("@")) {
+      setMentionQuery(lastWord.slice(1).toLowerCase());
       setShowMentions(true);
     } else {
       setShowMentions(false);
+      setMentionQuery("");
     }
   };
 
   const handleSelectUser = (user) => {
-    const words = text.split(" ");
+    const words = text.split(/\s/);
     words.pop();
-    setText(words.join(" ") + " @" + user.username + " ");
+    const prefix = words.length ? `${words.join(" ")} ` : "";
+    setText(`${prefix}@${user.username} `);
     setShowMentions(false);
+    setMentionQuery("");
   };
 
   /* ================= UI ================= */
@@ -146,9 +169,9 @@ const Comments = ({ taskId, users = [] }) => {
         />
 
         {/* MENTION DROPDOWN */}
-        {showMentions && users.length > 0 && (
+        {showMentions && filteredUsers.length > 0 && (
           <div className="absolute bg-gray-800 border border-gray-700 w-full mt-1 rounded shadow z-10 max-h-40 overflow-y-auto">
-            {users.map((user) => (
+            {filteredUsers.map((user) => (
               <div
                 key={user._id}
                 onClick={() => handleSelectUser(user)}
