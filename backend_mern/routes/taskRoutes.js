@@ -11,6 +11,7 @@ import {
   getTask,
   updateTask,
   deleteTask,
+  restoreTask,
   assignTask,
   getTaskStats,
   addComment,        //  NEW
@@ -46,8 +47,11 @@ router.get("/:id", protect, getTask);
 // Update Task
 router.put("/:id", protect, validate(updateTaskSchema), updateTask);
 
-// Delete Task
+// Delete Task (soft delete)
 router.delete("/:id", protect, deleteTask);
+
+// Restore a soft-deleted task
+router.patch("/:id/restore", protect, restoreTask);
 
 // 🔥 Add Comment
 router.post("/:id/comment", protect, validate(addCommentSchema), addComment);
