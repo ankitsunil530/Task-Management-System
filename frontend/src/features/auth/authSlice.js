@@ -48,6 +48,12 @@ const authSlice = createSlice({
       state.isSuccess = false;
       state.message = "";
     },
+    setProfilePicture: (state, action) => {
+      if (state.user) {
+        state.user = { ...state.user, profilePicture: action.payload };
+        localStorage.setItem("user", JSON.stringify(state.user));
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -98,5 +104,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, resetAuthState } = authSlice.actions;
+export const { logout, resetAuthState, setProfilePicture } = authSlice.actions;
 export default authSlice.reducer;

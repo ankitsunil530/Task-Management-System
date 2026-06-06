@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import Comments from "./Comments";
+import Avatar from "./Avatar";
 import { getTaskByIdAPI } from "../features/tasks/taskService";
 
 const actionLabels = {
@@ -108,8 +109,13 @@ export default function TaskDetailModal({ taskId, initialTask, onClose, users })
                   task.assignedTo.map((user) => (
                     <span
                       key={user._id}
-                      className="bg-gray-900 text-gray-200 px-3 py-1 rounded-full text-xs"
+                      className="flex items-center gap-2 bg-gray-900 text-gray-200 px-3 py-1 rounded-full text-xs"
                     >
+                      <Avatar
+                        src={user.profilePicture}
+                        name={user.name}
+                        size={20}
+                      />
                       {user.name}
                     </span>
                   ))
@@ -139,7 +145,14 @@ export default function TaskDetailModal({ taskId, initialTask, onClose, users })
               <div className="text-sm text-gray-300 space-y-2">
                 <p>
                   <span className="text-gray-400">Created by:</span>{" "}
-                  {task?.createdBy?.name || "Unknown"}
+                  <span className="inline-flex items-center gap-2 align-middle">
+                    <Avatar
+                      src={task?.createdBy?.profilePicture}
+                      name={task?.createdBy?.name}
+                      size={20}
+                    />
+                    {task?.createdBy?.name || "Unknown"}
+                  </span>
                 </p>
                 <p>
                   <span className="text-gray-400">Created at:</span>{" "}

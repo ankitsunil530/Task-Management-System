@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { socket } from "../socket";
+import Avatar from "./Avatar";
 
 const Comments = ({ taskId, users = [] }) => {
   const [comments, setComments] = useState([]);
@@ -109,9 +110,16 @@ const Comments = ({ taskId, users = [] }) => {
 
         {comments.map((c) => (
           <div key={c._id} className="bg-gray-800 p-2 rounded">
-            <p className="text-sm font-semibold text-gray-200">
-              {c.user?.name || "User"}
-            </p>
+            <div className="flex items-center gap-2 mb-1">
+              <Avatar
+                src={c.user?.profilePicture}
+                name={c.user?.name || "User"}
+                size={22}
+              />
+              <p className="text-sm font-semibold text-gray-200">
+                {c.user?.name || "User"}
+              </p>
+            </div>
 
             <p className="text-sm text-gray-300">
               {c.text.split(" ").map((word, i) =>

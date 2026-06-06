@@ -142,7 +142,7 @@ export const getMyTasks = asyncHandler(async (req, res) => {
   const tasks = await Task.find({
     assignedTo: { $in: [req.user._id] }, // 🔥 fix
   })
-    .populate("createdBy", "name email")
+    .populate("createdBy", "name email profilePicture")
     .sort({ createdAt: -1 });
 
   res.json({
@@ -189,8 +189,8 @@ export const getAllTasks = asyncHandler(async (req, res) => {
 
   const [tasks, total] = await Promise.all([
     Task.find(filter)
-      .populate("assignedTo", "name email")
-      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email profilePicture")
+      .populate("createdBy", "name email profilePicture")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit),
@@ -218,9 +218,9 @@ export const getTask = asyncHandler(async (req, res) => {
   }
 
   const task = await Task.findById(id)
-    .populate("createdBy", "name email")
-    .populate("assignedTo", "name email")
-    .populate("activityLogs.user", "name email");
+    .populate("createdBy", "name email profilePicture")
+    .populate("assignedTo", "name email profilePicture")
+    .populate("activityLogs.user", "name email profilePicture");
 
   if (!task) {
     res.status(404);
