@@ -6,6 +6,7 @@ import TaskDetailModal from "./TaskCardDetails";
 import StatusDropdown from "./StatusDropdown";
 import AssignTaskModal from "./AssignTaskModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import Avatar from "./Avatar";
 
 export default function TaskCard({ task }) {
   const dispatch = useDispatch();
@@ -25,9 +26,9 @@ export default function TaskCard({ task }) {
       : "bg-gray-700 text-gray-300";
 
   // 🔥 MULTI USER SUPPORT
-  const assignedNames = Array.isArray(task.assignedTo)
-    ? task.assignedTo.map((u) => u.name).join(", ")
-    : "You";
+  const assignees = Array.isArray(task.assignedTo) ? task.assignedTo : [];
+  const assignedNames =
+    assignees.length > 0 ? assignees.map((u) => u.name).join(", ") : "You";
 
   const handleDelete = () => {
     dispatch(deleteTask(task._id));
@@ -53,12 +54,25 @@ export default function TaskCard({ task }) {
         <p className="text-gray-400 text-sm mt-1">{task.description}</p>
 
         {/* ASSIGNED USERS */}
-        <p className="text-xs text-gray-400 mt-2">
-          Assigned to:{" "}
-          <span className="text-gray-200 font-medium">
-            {assignedNames}
-          </span>
-        </p>
+        <div className="flex items-center gap-2 mt-2">
+          {assignees.length > 0 && (
+            <div className="flex -space-x-2">
+              {assignees.slice(0, 4).map((u) => (
+                <Avatar
+                  key={u._id}
+                  src={u.profilePicture}
+                  name={u.name}
+                  size={24}
+                  className="ring-2 ring-gray-900"
+                />
+              ))}
+            </div>
+          )}
+          <p className="text-xs text-gray-400">
+            Assigned to:{" "}
+            <span className="text-gray-200 font-medium">{assignedNames}</span>
+          </p>
+        </div>
 
         {/* FOOTER */}
         <div className="flex justify-between items-center mt-4">

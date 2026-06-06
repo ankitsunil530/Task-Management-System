@@ -4,8 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import { getMyTasks } from "../features/tasks/taskSlice";
-import { logout } from "../features/auth/authSlice";
+import { logout, setProfilePicture } from "../features/auth/authSlice";
 import { exportMyTasksCSVAPI } from "../features/tasks/taskService";
+import { updateProfilePictureAPI } from "../features/auth/authService";
+import { uploadToCloudinary } from "../utils/cloudinary";
+
+import Avatar from "../components/Avatar";
 
 import TaskCard from "../components/TaskCard";
 import CreateTaskModal from "../components/CreateTaskModal";
@@ -26,9 +30,7 @@ export default function UserDashboard() {
   const [openTaskModal, setOpenTaskModal] = useState(false);
   const [view, setView] = useState("list"); // list | kanban
   const [isExporting, setIsExporting] = useState(false);
-  const [profileImage, setProfileImage] = useState(
-    localStorage.getItem("profileImage")
-  );
+  const [uploading, setUploading] = useState(false);
 
   const notifiedRef = useRef(new Set());
 
@@ -86,17 +88,36 @@ export default function UserDashboard() {
     }
   };
 
-  /* ================= PROFILE IMAGE ================= */
-  const handleProfileUpload = (e) => {
+  /* ================= PROFILE PICTURE ================= */
+  const handleProfileUpload = async (e) => {
     const file = e.target.files[0];
+    e.target.value = ""; // allow re-selecting the same file
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      localStorage.setItem("profileImage", reader.result);
-      setProfileImage(reader.result);
-    };
-    reader.readAsDataURL(file);
+    try {
+      setUploading(true);
+      const url = await uploadToCloudinary(file);
+      await updateProfilePictureAPI(url);
+      dispatch(setProfilePicture(url));
+      toast.success("Profile picture updated");
+    } catch (err) {
+      toast.error(err.message || "Failed to update picture");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    try {
+      setUploading(true);
+      await updateProfilePictureAPI("");
+      dispatch(setProfilePicture(""));
+      toast.success("Profile picture removed");
+    } catch (err) {
+      toast.error(err.message || "Failed to remove picture");
+    } finally {
+      setUploading(false);
+    }
   };
 
   /* ================= USER STATS (FRONTEND) ================= */
@@ -149,24 +170,44 @@ export default function UserDashboard() {
 
           {/* ========== USER PROFILE CARD ========== */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
-            <img
-              src={
-                profileImage ||
-                `https://ui-avatars.com/api/?name=${user?.name}`
-              }
-              alt="Profile"
-              className="w-28 h-28 rounded-full mx-auto mb-4 object-cover border border-gray-700"
+            <Avatar
+              src={user?.profilePicture}
+              name={user?.name}
+              size={112}
+              className="mx-auto mb-4 border border-gray-700"
             />
 
-            <label className="cursor-pointer text-xs text-indigo-400 hover:underline">
-              Change Photo
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleProfileUpload}
-                className="hidden"
-              />
-            </label>
+            <div className="flex items-center justify-center gap-3">
+              <label
+                className={`cursor-pointer text-xs text-indigo-400 hover:underline ${
+                  uploading ? "opacity-50 pointer-events-none" : ""
+                }`}
+              >
+                {uploading
+                  ? "Uploading..."
+                  : user?.profilePicture
+                  ? "Change Photo"
+                  : "Upload Photo"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleProfileUpload}
+                  disabled={uploading}
+                  className="hidden"
+                />
+              </label>
+
+              {user?.profilePicture && (
+                <button
+                  type="button"
+                  onClick={handleRemovePhoto}
+                  disabled={uploading}
+                  className="text-xs text-red-400 hover:underline disabled:opacity-50"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
 
             <h2 className="mt-4 font-semibold text-lg">
               {user?.name}
