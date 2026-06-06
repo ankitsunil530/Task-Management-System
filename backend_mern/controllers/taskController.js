@@ -2,11 +2,13 @@ import asyncHandler from "express-async-handler";
 import mongoose from "mongoose";
 import Task from "../models/Task.js";
 import User from "../models/User.js";
+import Notification from "../models/Notification.js";
 import { getTaskNotification } from "../utils/taskNotification.js";
 import {
   emitTaskCreated,
   emitTaskUpdate,
   emitTaskDeleted,
+  emitNotification,
 } from "../utils/socket.js";
 
 const VALID_STATUS = ["todo", "in-progress", "done"];
@@ -79,12 +81,16 @@ const buildTaskResponse = (task) => ({
 
 // 🔥 FIXED (array support)
 const checkPermission = (task, user) => {
-  const isAssigned = task.assignedTo.some(
-    (u) => u.toString() === user._id.toString()
-  );
+  const uid = user._id.toString();
+  const isAssigned = task.assignedTo.some((u) => u.toString() === uid);
+  // The creator must retain access even after an admin reassigns the task to
+  // other users (assignTask replaces assignedTo wholesale).
+  const isCreator = task.createdBy && task.createdBy.toString() === uid;
 
-  if (!isAssigned && user.role !== "admin") {
-    throw new Error("Not authorized");
+  if (!isAssigned && !isCreator && user.role !== "admin") {
+    const error = new Error("Not authorized");
+    error.status = 403;
+    throw error;
   }
 };
 
@@ -140,9 +146,14 @@ export const createTask = asyncHandler(async (req, res) => {
 
 export const getMyTasks = asyncHandler(async (req, res) => {
   const tasks = await Task.find({
-    assignedTo: { $in: [req.user._id] }, // 🔥 fix
+    // Return tasks the user is assigned to OR created, so a creator still sees
+    // their task after being reassigned off the assignedTo list.
+    $or: [
+      { assignedTo: { $in: [req.user._id] } },
+      { createdBy: req.user._id },
+    ],
   })
-    .populate("createdBy", "name email")
+    .populate("createdBy", "name email profilePicture")
     .sort({ createdAt: -1 });
 
   res.json({
@@ -189,8 +200,8 @@ export const getAllTasks = asyncHandler(async (req, res) => {
 
   const [tasks, total] = await Promise.all([
     Task.find(filter)
-      .populate("assignedTo", "name email")
-      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email profilePicture")
+      .populate("createdBy", "name email profilePicture")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit),
@@ -218,9 +229,11 @@ export const getTask = asyncHandler(async (req, res) => {
   }
 
   const task = await Task.findById(id)
-    .populate("createdBy", "name email")
-    .populate("assignedTo", "name email")
-    .populate("activityLogs.user", "name email");
+    .populate("createdBy", "name email profilePicture")
+    .populate("assignedTo", "name email profilePicture")
+    .populate("activityLogs.user", "name email profilePicture")
+    .populate("comments.user", "name email profilePicture")
+    .populate("comments.mentions", "name email profilePicture");
 
   if (!task) {
     res.status(404);
@@ -420,8 +433,16 @@ export const addComment = asyncHandler(async (req, res) => {
   const { text } = req.body;
   const { id } = req.params;
 
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
   const task = await Task.findById(id);
-  if (!task) throw new Error("Task not found");
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
 
   checkPermission(task, req.user);
 
@@ -447,6 +468,27 @@ export const addComment = asyncHandler(async (req, res) => {
 
   await task.save();
 
+  // Notify mentioned users (excluding the comment author mentioning themselves).
+  // Persist a Notification per recipient, then push it to their personal room
+  // so it appears in real time and survives a page reload.
+  const recipientIds = mentionedIds.filter(
+    (mid) => mid.toString() !== req.user._id.toString()
+  );
+
+  if (recipientIds.length > 0) {
+    const created = await Notification.insertMany(
+      recipientIds.map((rid) => ({
+        recipient: rid,
+        sender: req.user._id,
+        type: "mention",
+        task: task._id,
+        message: `${req.user.name} mentioned you in a comment on "${task.title}"`,
+      }))
+    );
+
+    created.forEach((doc) => emitNotification(doc.recipient, doc));
+  }
+
   task.assignedTo.forEach((uid) => emitTaskUpdate(uid, task));
 
   res.json({
@@ -458,8 +500,23 @@ export const addComment = asyncHandler(async (req, res) => {
 /* ================= TOGGLE WATCHER ================= */
 
 export const toggleWatcher = asyncHandler(async (req, res) => {
-  const task = await Task.findById(req.params.id);
-  if (!task) throw new Error("Task not found");
+  const { id } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  const task = await Task.findById(id);
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  // Watching a task is a task-scoped action; restrict it to the creator,
+  // assignees, or an admin. Previously this endpoint had no permission check,
+  // so any authenticated user could watch/unwatch any task by id (IDOR).
+  checkPermission(task, req.user);
 
   const userId = req.user._id;
 
