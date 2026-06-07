@@ -146,6 +146,8 @@ export const createTask = asyncHandler(async (req, res) => {
 
 export const getMyTasks = asyncHandler(async (req, res) => {
   const tasks = await Task.find({
+    // Exclude soft-deleted tasks so a deleted task disappears from listings.
+    isDeleted: { $ne: true },
     // Return tasks the user is assigned to OR created, so a creator still sees
     // their task after being reassigned off the assignedTo list.
     $or: [
@@ -168,6 +170,7 @@ export const getMyTasks = asyncHandler(async (req, res) => {
 export const exportMyTasks = asyncHandler(async (req, res) => {
   const tasks = await Task.find({
     assignedTo: { $in: [req.user._id] },
+    isDeleted: { $ne: true },
   })
     .sort({ createdAt: -1 })
     .lean();
@@ -190,7 +193,7 @@ export const getAllTasks = asyncHandler(async (req, res) => {
   limit = Math.min(Number(limit) || 5, MAX_LIMIT);
   page = Number(page) || 1;
 
-  const filter = {};
+  const filter = { isDeleted: { $ne: true } };
 
   if (status && VALID_STATUS.includes(status)) filter.status = status;
   if (priority && VALID_PRIORITY.includes(priority)) filter.priority = priority;
@@ -228,7 +231,7 @@ export const getTask = asyncHandler(async (req, res) => {
     throw new Error("Invalid task id");
   }
 
-  const task = await Task.findById(id)
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } })
     .populate("createdBy", "name email profilePicture")
     .populate("assignedTo", "name email profilePicture")
     .populate("activityLogs.user", "name email profilePicture");
@@ -256,7 +259,7 @@ export const updateTask = asyncHandler(async (req, res) => {
     throw new Error("Invalid task id");
   }
 
-  const task = await Task.findById(id);
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
   if (!task) {
     res.status(404);
     throw new Error("Task not found");
@@ -358,7 +361,7 @@ export const deleteTask = asyncHandler(async (req, res) => {
     throw new Error("Invalid task id");
   }
 
-  const task = await Task.findById(id);
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
   if (!task) {
     res.status(404);
     throw new Error("Task not found");
@@ -366,7 +369,13 @@ export const deleteTask = asyncHandler(async (req, res) => {
 
   checkPermission(task, req.user);
 
-  await task.deleteOne();
+  // Soft delete: flag the document instead of removing it, so an accidental
+  // delete can be restored and an audit trail survives. All list/detail
+  // queries filter { isDeleted: { $ne: true } }, so a soft-deleted task
+  // disappears from the UI exactly like a hard delete would.
+  task.isDeleted = true;
+  task.deletedAt = new Date();
+  await task.save();
 
   // 🔥 emit to all users
   task.assignedTo.forEach((uid) => emitTaskDeleted(uid, task._id));
@@ -374,6 +383,37 @@ export const deleteTask = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: "Task deleted successfully",
+  });
+});
+
+/* ================= RESTORE TASK ================= */
+
+export const restoreTask = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  // Look up explicitly among soft-deleted tasks (the normal queries exclude
+  // them). Sets isDeleted in the query so it can find the deleted document.
+  const task = await Task.findOne({ _id: id, isDeleted: true });
+  if (!task) {
+    res.status(404);
+    throw new Error("Deleted task not found");
+  }
+
+  checkPermission(task, req.user);
+
+  task.isDeleted = false;
+  task.deletedAt = null;
+  await task.save();
+
+  res.json({
+    success: true,
+    message: "Task restored successfully",
+    data: buildTaskResponse(task),
   });
 });
 
@@ -402,7 +442,7 @@ export const assignTask = asyncHandler(async (req, res) => {
     throw new Error("One or more assigned users do not exist");
   }
 
-  const task = await Task.findById(id);
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
   if (!task) {
     res.status(404);
     throw new Error("Task not found");
@@ -436,7 +476,7 @@ export const addComment = asyncHandler(async (req, res) => {
     throw new Error("Invalid task id");
   }
 
-  const task = await Task.findById(id);
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
   if (!task) {
     res.status(404);
     throw new Error("Task not found");
@@ -505,7 +545,7 @@ export const toggleWatcher = asyncHandler(async (req, res) => {
     throw new Error("Invalid task id");
   }
 
-  const task = await Task.findById(id);
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
   if (!task) {
     res.status(404);
     throw new Error("Task not found");
@@ -546,17 +586,20 @@ export const getTaskStats = asyncHandler(async (req, res) => {
     statusAggregation,
     priorityAggregation,
   ] = await Promise.all([
-    Task.countDocuments(),
-    Task.countDocuments({ status: "done" }),
-    Task.countDocuments({ status: { $ne: "done" } }),
+    Task.countDocuments({ isDeleted: { $ne: true } }),
+    Task.countDocuments({ status: "done", isDeleted: { $ne: true } }),
+    Task.countDocuments({ status: { $ne: "done" }, isDeleted: { $ne: true } }),
     Task.countDocuments({
       deadline: { $lt: now },
       status: { $ne: "done" },
+      isDeleted: { $ne: true },
     }),
     Task.aggregate([
+      { $match: { isDeleted: { $ne: true } } },
       { $group: { _id: "$status", count: { $sum: 1 } } },
     ]),
     Task.aggregate([
+      { $match: { isDeleted: { $ne: true } } },
       { $group: { _id: "$priority", count: { $sum: 1 } } },
     ]),
   ]);
