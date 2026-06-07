@@ -13,10 +13,16 @@ const Comments = ({ taskId, users = [] }) => {
   // parent doesn't pass a users prop (TaskCard currently passes users={[]}).
   const [availableUsers, setAvailableUsers] = useState(users);
 
+  // Users have no stored `username`; fall back to the email local-part so the
+  // dropdown shows real handles (matches the backend mention resolver).
+  const mentionName = (u) =>
+    (u.username || (u.email ? u.email.split("@")[0] : "")).toLowerCase();
+
   // Live autocomplete list: usernames matching what's typed after "@".
-  const filteredUsers = availableUsers.filter((u) =>
-    (u.username || "").toLowerCase().startsWith(mentionQuery)
-  );
+  const filteredUsers = availableUsers.filter((u) => {
+    const name = mentionName(u);
+    return name.length > 0 && name.startsWith(mentionQuery);
+  });
 
   /* ================= FETCH COMMENTS ================= */
 
@@ -114,7 +120,7 @@ const Comments = ({ taskId, users = [] }) => {
     const words = text.split(/\s/);
     words.pop();
     const prefix = words.length ? `${words.join(" ")} ` : "";
-    setText(`${prefix}@${user.username} `);
+    setText(`${prefix}@${mentionName(user)} `);
     setShowMentions(false);
     setMentionQuery("");
   };
@@ -177,7 +183,7 @@ const Comments = ({ taskId, users = [] }) => {
                 onClick={() => handleSelectUser(user)}
                 className="p-2 hover:bg-gray-700 cursor-pointer text-white"
               >
-                @{user.username}
+                @{mentionName(user)}
               </div>
             ))}
           </div>
