@@ -144,11 +144,21 @@ export const logoutUser = asyncHandler(async (req, res) => {
 
 // ================= ADMIN: GET ALL USERS =================
 export const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().select("-password");
+  const users = await User.find().select("-password").lean();
+
+  // The User model has no `username` field, but the @mention feature keys off
+  // one (dropdown + comment mention resolution). Derive a stable username from
+  // the email local-part so mentions work for all existing users without a DB
+  // migration. If a real `username` is ever added, it takes precedence.
+  const data = users.map((u) => ({
+    ...u,
+    username: u.username || (u.email ? u.email.split("@")[0] : ""),
+  }));
+
   res.json({
     success: true,
-    count: users.length,
-    data: users,
+    count: data.length,
+    data,
   });
 });
 

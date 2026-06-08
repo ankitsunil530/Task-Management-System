@@ -499,12 +499,24 @@ export const addComment = asyncHandler(async (req, res) => {
 
   checkPermission(task, req.user);
 
-  // 🔥 mention detection
-  const mentionMatches = text.match(/@(\w+)/g) || [];
-  const usernames = mentionMatches.map((u) => u.replace("@", ""));
+  // 🔥 mention detection.
+  // Users have no stored `username`, so resolve @mentions against a username
+  // derived from the email local-part — the SAME derivation getAllUsers uses
+  // for the autocomplete, so what the user picks is what we match here.
+  const mentionMatches = text.match(/@([\w.-]+)/g) || [];
+  const usernames = mentionMatches.map((u) => u.slice(1).toLowerCase());
 
-  const users = await User.find({ username: { $in: usernames } });
-  const mentionedIds = users.map((u) => u._id);
+  let mentionedIds = [];
+  if (usernames.length > 0) {
+    const candidates = await User.find().select("_id email username");
+    const mentioned = candidates.filter((u) => {
+      const uname = (
+        u.username || (u.email ? u.email.split("@")[0] : "")
+      ).toLowerCase();
+      return usernames.includes(uname);
+    });
+    mentionedIds = mentioned.map((u) => u._id);
+  }
 
   const comment = {
     user: req.user._id,

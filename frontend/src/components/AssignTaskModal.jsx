@@ -43,8 +43,9 @@ export default function AssignTaskModal({ task, onClose }) {
     setLoading(true);
     setError(null);
 
+    // The modal selects a single user; backend takes an array of ids.
     const res = await dispatch(
-      assignTask({ taskId: task._id, userId })
+      assignTask({ taskId: task._id, userIds: [userId] })
     );
 
     setLoading(false);

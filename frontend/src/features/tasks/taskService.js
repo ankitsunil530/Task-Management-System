@@ -37,8 +37,9 @@ export const getAllTasksAPI = async () => {
   return res.data.data;
 };
 
-export const assignTaskAPI = async ({ taskId, userId }) => {
-  const res = await api.patch(`/tasks/${taskId}/assign`, { userId });
+export const assignTaskAPI = async ({ taskId, userIds }) => {
+  // Backend expects { userIds: string[] } and assignedTo is an array field.
+  const res = await api.patch(`/tasks/${taskId}/assign`, { userIds });
   return res.data.data;
 };
 
