@@ -19,13 +19,28 @@ const MAX_LIMIT = 50;
 
 const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
+// Characters that spreadsheet applications (Excel, Google Sheets, LibreOffice
+// Calc) interpret as the start of a formula when they are the first character
+// of a cell. A leading TAB or CR also triggers evaluation in some apps.
+const CSV_FORMULA_TRIGGERS = new Set(["=", "+", "-", "@", "\t", "\r"]);
+
 const csvEscape = (value) => {
   if (value === null || value === undefined) return "";
 
-  const stringValue =
+  let stringValue =
     value instanceof Date
       ? value.toISOString()
       : String(value).replace(/\r?\n/g, " ");
+
+  // CSV / formula injection guard (CWE-1236, OWASP "CSV Injection").
+  // Spreadsheet apps strip the surrounding CSV quotes on parse and then
+  // evaluate any cell whose first character is = + - @ TAB or CR as a formula.
+  // Prefixing a single quote marks the cell as literal text: the apostrophe is
+  // not displayed and the underlying value is unchanged, but the formula engine
+  // no longer executes it.
+  if (stringValue.length > 0 && CSV_FORMULA_TRIGGERS.has(stringValue[0])) {
+    stringValue = `'${stringValue}`;
+  }
 
   return `"${stringValue.replace(/"/g, '""')}"`;
 };
