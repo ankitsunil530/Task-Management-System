@@ -15,6 +15,7 @@ import {
   assignTask,
   getTaskStats,
   addComment,        //  NEW
+  editComment,       //  NEW
   toggleWatcher,     //  NEW
 } from "../controllers/taskController.js";
 
@@ -55,6 +56,9 @@ router.patch("/:id/restore", protect, restoreTask);
 
 // 🔥 Add Comment
 router.post("/:id/comment", protect, validate(addCommentSchema), addComment);
+
+// 🔥 Edit Comment (author or admin only)
+router.patch("/:id/comments/:commentId", protect, validate(addCommentSchema), editComment);
 
 // 🔥 Toggle Watcher (subscribe/unsubscribe)
 router.patch("/:id/watch", protect, toggleWatcher);

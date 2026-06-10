@@ -62,6 +62,7 @@ const activitySchema = new mongoose.Schema({
       "assigned",
       "priority_changed",
       "comment_added",
+      "comment_edited",
       "updated",
       "deleted",
     ],
