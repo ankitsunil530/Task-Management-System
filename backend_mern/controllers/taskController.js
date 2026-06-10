@@ -249,7 +249,9 @@ export const getTask = asyncHandler(async (req, res) => {
   const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } })
     .populate("createdBy", "name email profilePicture")
     .populate("assignedTo", "name email profilePicture")
-    .populate("activityLogs.user", "name email profilePicture");
+    .populate("activityLogs.user", "name email profilePicture")
+    .populate("comments.user", "name email profilePicture")
+    .populate("comments.mentions", "name email profilePicture");
 
   if (!task) {
     res.status(404);
