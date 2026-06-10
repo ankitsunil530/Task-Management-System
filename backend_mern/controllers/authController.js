@@ -1,5 +1,6 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/User.js";
+import Task from "../models/Task.js";
 import generateToken from "../utils/generateToken.js";
 
 // Accepts only an https URL served from Cloudinary's media host, so the stored
@@ -170,6 +171,34 @@ export const deleteUser = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("User not found");
   }
+
+  // Guard 1: Prevent an admin from deleting their own account.
+  // Self-deletion would lock the admin out immediately.
+  if (req.params.id === req.user._id.toString()) {
+    res.status(400);
+    throw new Error("You cannot delete your own account");
+  }
+
+  // Guard 2: Prevent deletion of the last admin.
+  // If the target is an admin and no other admin exists, reject — deleting
+  // them would leave the system with no way to perform admin operations.
+  if (user.role === "admin") {
+    const adminCount = await User.countDocuments({ role: "admin" });
+    if (adminCount <= 1) {
+      res.status(400);
+      throw new Error("Cannot delete the last admin account — promote another user first");
+    }
+  }
+
+  // Guard 3: Clean up task references before deleting the user.
+  // Pull the deleted user from assignedTo and watchers on every task they
+  // appear in, so tasks remain visible and intact for other participants.
+  // createdBy is left unchanged — the task stays readable by other assignees
+  // and admins, and populated views already handle a null creator gracefully.
+  await Task.updateMany(
+    { $or: [{ assignedTo: user._id }, { watchers: user._id }] },
+    { $pull: { assignedTo: user._id, watchers: user._id } }
+  );
 
   await user.deleteOne();
 
