@@ -564,6 +564,139 @@ export const addComment = asyncHandler(async (req, res) => {
   });
 });
 
+/* ================= ADD SUBTASK ================= */
+
+export const addSubtask = asyncHandler(async (req, res) => {
+  const { title } = req.body;
+  const { id } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  // Only the creator, an assignee, or an admin may modify subtasks.
+  checkPermission(task, req.user);
+
+  task.subTasks.push({ title: title.trim() });
+
+  task.activityLogs.push({
+    action: "subtask_added",
+    user: req.user._id,
+  });
+
+  await task.save();
+
+  // Notify everyone watching/assigned that the task changed in real time.
+  task.assignedTo.forEach((uid) => emitTaskUpdate(uid, task));
+
+  // Return the saved subdocument so the caller gets its _id immediately.
+  const savedSubtask = task.subTasks[task.subTasks.length - 1];
+
+  res.status(201).json({
+    success: true,
+    data: savedSubtask,
+  });
+});
+
+/* ================= TOGGLE SUBTASK ================= */
+
+export const toggleSubtask = asyncHandler(async (req, res) => {
+  const { id, subId } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  if (!validateObjectId(subId)) {
+    res.status(400);
+    throw new Error("Invalid subtask id");
+  }
+
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  checkPermission(task, req.user);
+
+  const subtask = task.subTasks.id(subId);
+  if (!subtask) {
+    res.status(404);
+    throw new Error("Subtask not found");
+  }
+
+  subtask.completed = !subtask.completed;
+
+  task.activityLogs.push({
+    action: "subtask_completed",
+    user: req.user._id,
+  });
+
+  await task.save();
+
+  task.assignedTo.forEach((uid) => emitTaskUpdate(uid, task));
+
+  res.json({
+    success: true,
+    data: subtask,
+  });
+});
+
+/* ================= DELETE SUBTASK ================= */
+
+export const deleteSubtask = asyncHandler(async (req, res) => {
+  const { id, subId } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  if (!validateObjectId(subId)) {
+    res.status(400);
+    throw new Error("Invalid subtask id");
+  }
+
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  checkPermission(task, req.user);
+
+  const subtask = task.subTasks.id(subId);
+  if (!subtask) {
+    res.status(404);
+    throw new Error("Subtask not found");
+  }
+
+  subtask.deleteOne();
+
+  task.activityLogs.push({
+    action: "subtask_deleted",
+    user: req.user._id,
+  });
+
+  await task.save();
+
+  task.assignedTo.forEach((uid) => emitTaskUpdate(uid, task));
+
+  res.json({
+    success: true,
+    message: "Subtask removed",
+  });
+});
+
 /* ================= TOGGLE WATCHER ================= */
 
 export const toggleWatcher = asyncHandler(async (req, res) => {
