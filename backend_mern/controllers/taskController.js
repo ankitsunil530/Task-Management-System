@@ -465,6 +465,11 @@ export const assignTask = asyncHandler(async (req, res) => {
     throw new Error("Task not found");
   }
 
+  // Capture newly assigned users BEFORE overwriting assignedTo, so the
+  // notification is only sent to users who weren't already assigned.
+  const previousIds = task.assignedTo.map((id) => id.toString());
+  const newlyAssigned = userIds.filter((uid) => !previousIds.includes(uid.toString()));
+
   task.assignedTo = userIds;
 
   task.activityLogs.push({
@@ -473,6 +478,28 @@ export const assignTask = asyncHandler(async (req, res) => {
   });
 
   await task.save();
+
+  // Persist a Notification per newly-assigned user (excluding the admin who
+  // is doing the assigning), then push it to their personal room so it
+  // appears in real time and survives a page reload — same pattern as
+  // addComment/mention notifications.
+  const recipientIds = newlyAssigned.filter(
+    (uid) => uid.toString() !== req.user._id.toString()
+  );
+
+  if (recipientIds.length > 0) {
+    const created = await Notification.insertMany(
+      recipientIds.map((rid) => ({
+        recipient: rid,
+        sender: req.user._id,
+        type: "assignment",
+        task: task._id,
+        message: `${req.user.name} assigned you to "${task.title}"`,
+      }))
+    );
+
+    created.forEach((doc) => emitNotification(doc.recipient, doc));
+  }
 
   userIds.forEach((uid) => emitTaskUpdate(uid, task));
 
