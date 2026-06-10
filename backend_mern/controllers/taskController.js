@@ -202,6 +202,13 @@ export const exportMyTasks = asyncHandler(async (req, res) => {
 
 /* ================= GET ALL TASKS (ADMIN) ================= */
 
+// Escape all regex metacharacters in a user-supplied search string so that
+// characters like +, *, (, ), ., ^ and $ are treated as literals by MongoDB's
+// $regex operator. Without this, a search for "C++" is interpreted as a regex
+// (+ = "one or more C"), returning wrong results; a crafted pattern could also
+// trigger catastrophic backtracking (ReDoS) and hang the event loop.
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 export const getAllTasks = asyncHandler(async (req, res) => {
   let { status, priority, search, page = 1, limit = 5 } = req.query;
 
@@ -212,7 +219,7 @@ export const getAllTasks = asyncHandler(async (req, res) => {
 
   if (status && VALID_STATUS.includes(status)) filter.status = status;
   if (priority && VALID_PRIORITY.includes(priority)) filter.priority = priority;
-  if (search) filter.title = { $regex: search, $options: "i" };
+  if (search) filter.title = { $regex: escapeRegex(search), $options: "i" };
 
   const skip = (page - 1) * limit;
 
