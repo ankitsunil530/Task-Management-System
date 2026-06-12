@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import Comments from "./Comments";
+import Subtasks from "./Subtasks";
 import Avatar from "./Avatar";
 import { getTaskByIdAPI } from "../features/tasks/taskService";
 
@@ -11,6 +12,9 @@ const actionLabels = {
   deleted: "Task Deleted",
   comment_added: "Comment Added",
   assigned: "Assigned",
+  subtask_added: "Subtask Added",
+  subtask_completed: "Subtask Toggled",
+  subtask_deleted: "Subtask Deleted",
 };
 
 export default function TaskDetailModal({ taskId, initialTask, onClose, users }) {
@@ -160,6 +164,11 @@ export default function TaskDetailModal({ taskId, initialTask, onClose, users })
                 </p>
               </div>
             </div>
+
+            <Subtasks
+              taskId={taskId}
+              initialSubtasks={task?.subTasks || []}
+            />
 
             <Comments taskId={taskId} users={users} />
           </div>
