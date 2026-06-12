@@ -465,6 +465,11 @@ export const assignTask = asyncHandler(async (req, res) => {
     throw new Error("Task not found");
   }
 
+  // Capture newly assigned users BEFORE overwriting assignedTo, so the
+  // notification is only sent to users who weren't already assigned.
+  const previousIds = task.assignedTo.map((id) => id.toString());
+  const newlyAssigned = userIds.filter((uid) => !previousIds.includes(uid.toString()));
+
   task.assignedTo = userIds;
 
   task.activityLogs.push({
@@ -473,6 +478,28 @@ export const assignTask = asyncHandler(async (req, res) => {
   });
 
   await task.save();
+
+  // Persist a Notification per newly-assigned user (excluding the admin who
+  // is doing the assigning), then push it to their personal room so it
+  // appears in real time and survives a page reload — same pattern as
+  // addComment/mention notifications.
+  const recipientIds = newlyAssigned.filter(
+    (uid) => uid.toString() !== req.user._id.toString()
+  );
+
+  if (recipientIds.length > 0) {
+    const created = await Notification.insertMany(
+      recipientIds.map((rid) => ({
+        recipient: rid,
+        sender: req.user._id,
+        type: "assignment",
+        task: task._id,
+        message: `${req.user.name} assigned you to "${task.title}"`,
+      }))
+    );
+
+    created.forEach((doc) => emitNotification(doc.recipient, doc));
+  }
 
   userIds.forEach((uid) => emitTaskUpdate(uid, task));
 
@@ -620,6 +647,139 @@ export const editComment = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: comment,
+  });
+});
+
+/* ================= ADD SUBTASK ================= */
+
+export const addSubtask = asyncHandler(async (req, res) => {
+  const { title } = req.body;
+  const { id } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  // Only the creator, an assignee, or an admin may modify subtasks.
+  checkPermission(task, req.user);
+
+  task.subTasks.push({ title: title.trim() });
+
+  task.activityLogs.push({
+    action: "subtask_added",
+    user: req.user._id,
+  });
+
+  await task.save();
+
+  // Notify everyone watching/assigned that the task changed in real time.
+  task.assignedTo.forEach((uid) => emitTaskUpdate(uid, task));
+
+  // Return the saved subdocument so the caller gets its _id immediately.
+  const savedSubtask = task.subTasks[task.subTasks.length - 1];
+
+  res.status(201).json({
+    success: true,
+    data: savedSubtask,
+  });
+});
+
+/* ================= TOGGLE SUBTASK ================= */
+
+export const toggleSubtask = asyncHandler(async (req, res) => {
+  const { id, subId } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  if (!validateObjectId(subId)) {
+    res.status(400);
+    throw new Error("Invalid subtask id");
+  }
+
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  checkPermission(task, req.user);
+
+  const subtask = task.subTasks.id(subId);
+  if (!subtask) {
+    res.status(404);
+    throw new Error("Subtask not found");
+  }
+
+  subtask.completed = !subtask.completed;
+
+  task.activityLogs.push({
+    action: "subtask_completed",
+    user: req.user._id,
+  });
+
+  await task.save();
+
+  task.assignedTo.forEach((uid) => emitTaskUpdate(uid, task));
+
+  res.json({
+    success: true,
+    data: subtask,
+  });
+});
+
+/* ================= DELETE SUBTASK ================= */
+
+export const deleteSubtask = asyncHandler(async (req, res) => {
+  const { id, subId } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  if (!validateObjectId(subId)) {
+    res.status(400);
+    throw new Error("Invalid subtask id");
+  }
+
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  checkPermission(task, req.user);
+
+  const subtask = task.subTasks.id(subId);
+  if (!subtask) {
+    res.status(404);
+    throw new Error("Subtask not found");
+  }
+
+  subtask.deleteOne();
+
+  task.activityLogs.push({
+    action: "subtask_deleted",
+    user: req.user._id,
+  });
+
+  await task.save();
+
+  task.assignedTo.forEach((uid) => emitTaskUpdate(uid, task));
+
+  res.json({
+    success: true,
+    message: "Subtask removed",
   });
 });
 

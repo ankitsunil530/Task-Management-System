@@ -47,3 +47,18 @@ export const getTaskStatsAPI = async () => {
   const res = await api.get("/tasks/stats");
   return res.data.data;
 };
+
+export const addSubtaskAPI = async ({ taskId, title }) => {
+  const res = await api.post(`/tasks/${taskId}/subtasks`, { title });
+  return res.data.data;
+};
+
+export const toggleSubtaskAPI = async ({ taskId, subId }) => {
+  const res = await api.patch(`/tasks/${taskId}/subtasks/${subId}`);
+  return res.data.data;
+};
+
+export const deleteSubtaskAPI = async ({ taskId, subId }) => {
+  await api.delete(`/tasks/${taskId}/subtasks/${subId}`);
+  return subId;
+};

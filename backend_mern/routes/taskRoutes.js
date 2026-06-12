@@ -17,6 +17,9 @@ import {
   addComment,        //  NEW
   editComment,       //  NEW
   toggleWatcher,     //  NEW
+  addSubtask,        //  NEW
+  toggleSubtask,     //  NEW
+  deleteSubtask,     //  NEW
 } from "../controllers/taskController.js";
 
 import {
@@ -24,6 +27,7 @@ import {
   updateTaskSchema,
   assignTaskSchema,
   addCommentSchema,
+  addSubtaskSchema,
 } from "../validations/taskValidation.js";
 
 const router = express.Router();
@@ -62,6 +66,11 @@ router.patch("/:id/comments/:commentId", protect, validate(addCommentSchema), ed
 
 // 🔥 Toggle Watcher (subscribe/unsubscribe)
 router.patch("/:id/watch", protect, toggleWatcher);
+
+// 🔥 Subtasks (creator / assignee / admin only — enforced in controller)
+router.post("/:id/subtasks", protect, validate(addSubtaskSchema), addSubtask);
+router.patch("/:id/subtasks/:subId", protect, toggleSubtask);
+router.delete("/:id/subtasks/:subId", protect, deleteSubtask);
 
 
 

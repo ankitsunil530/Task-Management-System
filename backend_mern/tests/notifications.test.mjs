@@ -116,3 +116,82 @@ test("socket exposes an emitNotification helper", () => {
   assert.match(socket, /export const emitNotification/);
   assert.match(socket, /emit\("notification"/);
 });
+
+/* ---- Assignment notification tests (issue #72) ---- */
+
+const resolveNewlyAssigned = (userIds, previousIds, adminId) => {
+  const newlyAssigned = userIds.filter(
+    (uid) => !previousIds.includes(uid.toString())
+  );
+  return newlyAssigned.filter((uid) => uid.toString() !== adminId.toString());
+};
+
+const buildAssignmentMessage = (adminName, title) =>
+  `${adminName} assigned you to "${title}"`;
+
+test("assignment: only newly assigned users get notified, not existing assignees", () => {
+  const previous = ["u_alice"];
+  const newAssignees = ["u_alice", "u_bob", "u_carol"];
+  const admin = "u_admin";
+  const recipients = resolveNewlyAssigned(newAssignees, previous, admin);
+  // u_alice was already assigned — only u_bob and u_carol are new
+  assert.deepEqual(recipients, ["u_bob", "u_carol"]);
+});
+
+test("assignment: admin assigning themselves is excluded from recipients", () => {
+  const previous = [];
+  const newAssignees = ["u_admin", "u_bob"];
+  const admin = "u_admin";
+  const recipients = resolveNewlyAssigned(newAssignees, previous, admin);
+  assert.deepEqual(recipients, ["u_bob"]);
+  assert.ok(!recipients.includes("u_admin"));
+});
+
+test("assignment: no newly assigned users -> no notifications", () => {
+  const previous = ["u_alice", "u_bob"];
+  const newAssignees = ["u_alice", "u_bob"]; // same as before
+  const admin = "u_admin";
+  const recipients = resolveNewlyAssigned(newAssignees, previous, admin);
+  assert.equal(recipients.length, 0);
+});
+
+test("assignment notification message names the admin and the task", () => {
+  assert.equal(
+    buildAssignmentMessage("Saketh", "Fix login bug"),
+    'Saketh assigned you to "Fix login bug"'
+  );
+});
+
+test("assignTask persists + emits assignment notifications (structural)", () => {
+  const controller = read("../controllers/taskController.js");
+  // Must use Notification.insertMany for persistence
+  assert.match(
+    controller,
+    /Notification\.insertMany/,
+    "assignTask must persist notifications via insertMany"
+  );
+  // Must emit to each recipient's room
+  assert.match(
+    controller,
+    /emitNotification/,
+    "assignTask must emit assignment notifications"
+  );
+  // type must be "assignment"
+  assert.match(
+    controller,
+    /type:\s*["']assignment["']/,
+    "notification type must be 'assignment'"
+  );
+  // Must exclude the assigning admin from recipients
+  assert.match(
+    controller,
+    /req\.user\._id\.toString\(\)/,
+    "assignTask must exclude the admin from notification recipients"
+  );
+  // Must only notify newly assigned users
+  assert.match(
+    controller,
+    /newlyAssigned/,
+    "assignTask must compute newly assigned users to avoid re-notifying"
+  );
+});
