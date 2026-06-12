@@ -35,3 +35,10 @@ export const addCommentSchema = z.object({
     .min(1, "Comment text is required")
     .max(500, "Comment must be 500 characters or fewer"),
 });
+
+export const addSubtaskSchema = z.object({
+  title: z
+    .string()
+    .min(1, "Subtask title is required")
+    .max(200, "Subtask title must be 200 characters or fewer"),
+});
