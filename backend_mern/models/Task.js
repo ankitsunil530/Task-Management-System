@@ -65,6 +65,7 @@ const activitySchema = new mongoose.Schema({
       "subtask_added",
       "subtask_completed",
       "subtask_deleted",
+      "comment_edited",
       "updated",
       "deleted",
     ],

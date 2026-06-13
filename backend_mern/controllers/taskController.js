@@ -585,6 +585,65 @@ export const addComment = asyncHandler(async (req, res) => {
 
   task.assignedTo.forEach((uid) => emitTaskUpdate(uid, task));
 
+  // Return the saved subdocument — not the local `comment` object — so the
+  // caller receives the Mongoose-assigned _id and createdAt timestamp.
+  // Without this, the frontend cannot key or timestamp the new comment.
+  const savedComment = task.comments[task.comments.length - 1];
+
+  res.json({
+    success: true,
+    data: savedComment,
+  });
+});
+
+/* ================= EDIT COMMENT ================= */
+
+export const editComment = asyncHandler(async (req, res) => {
+  const { text } = req.body;
+  const { id, commentId } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  if (!validateObjectId(commentId)) {
+    res.status(400);
+    throw new Error("Invalid comment id");
+  }
+
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  // Find the comment subdocument by its _id using Mongoose's built-in helper.
+  const comment = task.comments.id(commentId);
+  if (!comment) {
+    res.status(404);
+    throw new Error("Comment not found");
+  }
+
+  // Only the comment author or an admin may edit the comment.
+  if (
+    comment.user.toString() !== req.user._id.toString() &&
+    req.user.role !== "admin"
+  ) {
+    res.status(403);
+    throw new Error("Not authorized to edit this comment");
+  }
+
+  comment.text = text.trim();
+  comment.edited = true;
+
+  task.activityLogs.push({
+    action: "comment_edited",
+    user: req.user._id,
+  });
+
+  await task.save();
+
   res.json({
     success: true,
     data: comment,
