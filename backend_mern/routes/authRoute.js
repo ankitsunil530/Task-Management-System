@@ -4,6 +4,7 @@ import {
   loginUser,
   logoutUser,
   userProfile,
+  updateProfilePicture,
   getAllUsers,
   deleteUser,
 } from "../controllers/authController.js";
@@ -20,6 +21,7 @@ router.post("/logout", protect, logoutUser);
 
 // 👤 User
 router.get("/profile", protect, userProfile);
+router.patch("/profile/picture", protect, updateProfilePicture);
 
 // 👑 Admin only
 router.get("/users", protect, admin, getAllUsers);

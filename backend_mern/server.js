@@ -3,14 +3,20 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import http from "http";
+import path from "path";
+import { fileURLToPath } from "url";
 import { Server } from "socket.io";
 
 import connectDB from "./db/db.js";
 import authRoute from "./routes/authRoute.js";
 import taskRoute from "./routes/taskRoutes.js";
 import notificationRoute from "./routes/notificationRoute.js";
+import notificationRoute from "./routes/notificationRoutes.js";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
 const NODE_ENV = process.env.NODE_ENV || "development";
@@ -120,7 +126,7 @@ app.use((req, res) => {
    ⚠️ GLOBAL ERROR HANDLER
 ================================ */
 app.use((err, req, res, next) => {
-  const status = err.status || 500;
+  const status = err.status || (res.statusCode >= 400 ? res.statusCode : 500);
 
   if (isDev) {
     console.error("❌ ERROR:", err.message);

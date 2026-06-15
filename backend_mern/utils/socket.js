@@ -21,3 +21,7 @@ export const emitNewComment = (taskId, comment) => {
 };
 
 
+// Push a notification to a single user's personal room (joined via "join").
+export const emitNotification = (userId, notification) => {
+  io.to(userId.toString()).emit("notification", notification);
+};

@@ -20,6 +20,67 @@ const MAX_LIMIT = 50;
 
 const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
+// Characters that spreadsheet applications (Excel, Google Sheets, LibreOffice
+// Calc) interpret as the start of a formula when they are the first character
+// of a cell. A leading TAB or CR also triggers evaluation in some apps.
+const CSV_FORMULA_TRIGGERS = new Set(["=", "+", "-", "@", "\t", "\r"]);
+
+const csvEscape = (value) => {
+  if (value === null || value === undefined) return "";
+
+  let stringValue =
+    value instanceof Date
+      ? value.toISOString()
+      : String(value).replace(/\r?\n/g, " ");
+
+  // CSV / formula injection guard (CWE-1236, OWASP "CSV Injection").
+  // Spreadsheet apps strip the surrounding CSV quotes on parse and then
+  // evaluate any cell whose first character is = + - @ TAB or CR as a formula.
+  // Prefixing a single quote marks the cell as literal text: the apostrophe is
+  // not displayed and the underlying value is unchanged, but the formula engine
+  // no longer executes it.
+  if (stringValue.length > 0 && CSV_FORMULA_TRIGGERS.has(stringValue[0])) {
+    stringValue = `'${stringValue}`;
+  }
+
+  return `"${stringValue.replace(/"/g, '""')}"`;
+};
+
+const formatDateForCsv = (value, includeTime = false) => {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return includeTime
+    ? date.toISOString().replace("T", " ").slice(0, 19)
+    : date.toISOString().slice(0, 10);
+};
+
+const buildTasksCsv = (tasks) => {
+  const headers = [
+    "Task Title",
+    "Description",
+    "Status",
+    "Priority",
+    "Due Date",
+    "Created Date",
+  ];
+
+  const rows = tasks.map((task) => [
+    csvEscape(task.title),
+    csvEscape(task.description || ""),
+    csvEscape(task.status),
+    csvEscape(task.priority),
+    csvEscape(formatDateForCsv(task.deadline)),
+    csvEscape(formatDateForCsv(task.createdAt, true)),
+  ]);
+
+  return [headers.map(csvEscape).join(","), ...rows.map((row) => row.join(","))].join(
+    "\r\n"
+  );
+};
+
 const buildTaskResponse = (task) => ({
   ...task._doc,
   isOverdue:
@@ -36,12 +97,16 @@ const buildTaskResponse = (task) => ({
 
 // 🔥 FIXED (array support)
 const checkPermission = (task, user) => {
-  const isAssigned = task.assignedTo.some(
-    (u) => u.toString() === user._id.toString()
-  );
+  const uid = user._id.toString();
+  const isAssigned = task.assignedTo.some((u) => u.toString() === uid);
+  // The creator must retain access even after an admin reassigns the task to
+  // other users (assignTask replaces assignedTo wholesale).
+  const isCreator = task.createdBy && task.createdBy.toString() === uid;
 
-  if (!isAssigned && user.role !== "admin") {
-    throw new Error("Not authorized");
+  if (!isAssigned && !isCreator && user.role !== "admin") {
+    const error = new Error("Not authorized");
+    error.status = 403;
+    throw error;
   }
 };
 
@@ -97,9 +162,16 @@ export const createTask = asyncHandler(async (req, res) => {
 
 export const getMyTasks = asyncHandler(async (req, res) => {
   const tasks = await Task.find({
-    assignedTo: { $in: [req.user._id] }, // 🔥 fix
+    // Exclude soft-deleted tasks so a deleted task disappears from listings.
+    isDeleted: { $ne: true },
+    // Return tasks the user is assigned to OR created, so a creator still sees
+    // their task after being reassigned off the assignedTo list.
+    $or: [
+      { assignedTo: { $in: [req.user._id] } },
+      { createdBy: req.user._id },
+    ],
   })
-    .populate("createdBy", "name email")
+    .populate("createdBy", "name email profilePicture")
     .sort({ createdAt: -1 });
 
   res.json({
@@ -109,7 +181,34 @@ export const getMyTasks = asyncHandler(async (req, res) => {
   });
 });
 
+/* ================= EXPORT MY TASKS CSV ================= */
+
+export const exportMyTasks = asyncHandler(async (req, res) => {
+  const tasks = await Task.find({
+    assignedTo: { $in: [req.user._id] },
+    isDeleted: { $ne: true },
+  })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const csv = `\uFEFF${buildTasksCsv(tasks)}`;
+  const fileName = `tasks_${new Date().toISOString().slice(0, 10)}.csv`;
+
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+  res.setHeader("Cache-Control", "no-store");
+
+  res.send(csv);
+});
+
 /* ================= GET ALL TASKS (ADMIN) ================= */
+
+// Escape all regex metacharacters in a user-supplied search string so that
+// characters like +, *, (, ), ., ^ and $ are treated as literals by MongoDB's
+// $regex operator. Without this, a search for "C++" is interpreted as a regex
+// (+ = "one or more C"), returning wrong results; a crafted pattern could also
+// trigger catastrophic backtracking (ReDoS) and hang the event loop.
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export const getAllTasks = asyncHandler(async (req, res) => {
   let { status, priority, search, page = 1, limit = 5 } = req.query;
@@ -117,18 +216,18 @@ export const getAllTasks = asyncHandler(async (req, res) => {
   limit = Math.min(Number(limit) || 5, MAX_LIMIT);
   page = Number(page) || 1;
 
-  const filter = {};
+  const filter = { isDeleted: { $ne: true } };
 
   if (status && VALID_STATUS.includes(status)) filter.status = status;
   if (priority && VALID_PRIORITY.includes(priority)) filter.priority = priority;
-  if (search) filter.title = { $regex: search, $options: "i" };
+  if (search) filter.title = { $regex: escapeRegex(search), $options: "i" };
 
   const skip = (page - 1) * limit;
 
   const [tasks, total] = await Promise.all([
     Task.find(filter)
-      .populate("assignedTo", "name email")
-      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email profilePicture")
+      .populate("createdBy", "name email profilePicture")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit),
@@ -155,10 +254,12 @@ export const getTask = asyncHandler(async (req, res) => {
     throw new Error("Invalid task id");
   }
 
-  const task = await Task.findById(id)
-    .populate("createdBy", "name email")
-    .populate("assignedTo", "name email")
-    .populate("activityLogs.user", "name email");
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } })
+    .populate("createdBy", "name email profilePicture")
+    .populate("assignedTo", "name email profilePicture")
+    .populate("activityLogs.user", "name email profilePicture")
+    .populate("comments.user", "name email profilePicture")
+    .populate("comments.mentions", "name email profilePicture");
 
   if (!task) {
     res.status(404);
@@ -183,7 +284,7 @@ export const updateTask = asyncHandler(async (req, res) => {
     throw new Error("Invalid task id");
   }
 
-  const task = await Task.findById(id);
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
   if (!task) {
     res.status(404);
     throw new Error("Task not found");
@@ -310,7 +411,7 @@ export const deleteTask = asyncHandler(async (req, res) => {
     throw new Error("Invalid task id");
   }
 
-  const task = await Task.findById(id);
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
   if (!task) {
     res.status(404);
     throw new Error("Task not found");
@@ -318,7 +419,13 @@ export const deleteTask = asyncHandler(async (req, res) => {
 
   checkPermission(task, req.user);
 
-  await task.deleteOne();
+  // Soft delete: flag the document instead of removing it, so an accidental
+  // delete can be restored and an audit trail survives. All list/detail
+  // queries filter { isDeleted: { $ne: true } }, so a soft-deleted task
+  // disappears from the UI exactly like a hard delete would.
+  task.isDeleted = true;
+  task.deletedAt = new Date();
+  await task.save();
 
   // 🔥 emit to all users
   task.assignedTo.forEach((uid) => emitTaskDeleted(uid, task._id));
@@ -326,6 +433,37 @@ export const deleteTask = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: "Task deleted successfully",
+  });
+});
+
+/* ================= RESTORE TASK ================= */
+
+export const restoreTask = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  // Look up explicitly among soft-deleted tasks (the normal queries exclude
+  // them). Sets isDeleted in the query so it can find the deleted document.
+  const task = await Task.findOne({ _id: id, isDeleted: true });
+  if (!task) {
+    res.status(404);
+    throw new Error("Deleted task not found");
+  }
+
+  checkPermission(task, req.user);
+
+  task.isDeleted = false;
+  task.deletedAt = null;
+  await task.save();
+
+  res.json({
+    success: true,
+    message: "Task restored successfully",
+    data: buildTaskResponse(task),
   });
 });
 
@@ -344,8 +482,30 @@ export const assignTask = asyncHandler(async (req, res) => {
     throw new Error("userIds must be an array or userId must be provided");
   }
 
-  const task = await Task.findById(id);
-  if (!task) throw new Error("Task not found");
+  // Verify every provided id is a valid ObjectId
+  const invalidIds = userIds.filter((uid) => !validateObjectId(uid));
+  if (invalidIds.length > 0) {
+    res.status(400);
+    throw new Error(`Invalid user id(s): ${invalidIds.join(", ")}`);
+  }
+
+  // Verify every provided user actually exists before assigning
+  const existingCount = await User.countDocuments({ _id: { $in: userIds } });
+  if (existingCount !== userIds.length) {
+    res.status(400);
+    throw new Error("One or more assigned users do not exist");
+  }
+
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  // Capture newly assigned users BEFORE overwriting assignedTo, so the
+  // notification is only sent to users who weren't already assigned.
+  const previousIds = task.assignedTo.map((id) => id.toString());
+  const newlyAssigned = userIds.filter((uid) => !previousIds.includes(uid.toString()));
 
   // Get previous assignees to identify newly assigned users
   const previousAssignees = (task.assignedTo || []).map((uid) => uid.toString());
@@ -393,6 +553,29 @@ export const assignTask = asyncHandler(async (req, res) => {
 
   // Emit task update to all assigned users
   userIds.forEach((uid) => emitTaskUpdate(uid, responseTask));
+  // Persist a Notification per newly-assigned user (excluding the admin who
+  // is doing the assigning), then push it to their personal room so it
+  // appears in real time and survives a page reload — same pattern as
+  // addComment/mention notifications.
+  const recipientIds = newlyAssigned.filter(
+    (uid) => uid.toString() !== req.user._id.toString()
+  );
+
+  if (recipientIds.length > 0) {
+    const created = await Notification.insertMany(
+      recipientIds.map((rid) => ({
+        recipient: rid,
+        sender: req.user._id,
+        type: "assignment",
+        task: task._id,
+        message: `${req.user.name} assigned you to "${task.title}"`,
+      }))
+    );
+
+    created.forEach((doc) => emitNotification(doc.recipient, doc));
+  }
+
+  userIds.forEach((uid) => emitTaskUpdate(uid, task));
 
   res.json({
     success: true,
@@ -406,17 +589,37 @@ export const addComment = asyncHandler(async (req, res) => {
   const { text } = req.body;
   const { id } = req.params;
 
-  const task = await Task.findById(id);
-  if (!task) throw new Error("Task not found");
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
 
   checkPermission(task, req.user);
 
-  // 🔥 mention detection
-  const mentionMatches = text.match(/@(\w+)/g) || [];
-  const usernames = mentionMatches.map((u) => u.replace("@", ""));
+  // 🔥 mention detection.
+  // Users have no stored `username`, so resolve @mentions against a username
+  // derived from the email local-part — the SAME derivation getAllUsers uses
+  // for the autocomplete, so what the user picks is what we match here.
+  const mentionMatches = text.match(/@([\w.-]+)/g) || [];
+  const usernames = mentionMatches.map((u) => u.slice(1).toLowerCase());
 
-  const users = await User.find({ username: { $in: usernames } });
-  const mentionedIds = users.map((u) => u._id);
+  let mentionedIds = [];
+  if (usernames.length > 0) {
+    const candidates = await User.find().select("_id email username");
+    const mentioned = candidates.filter((u) => {
+      const uname = (
+        u.username || (u.email ? u.email.split("@")[0] : "")
+      ).toLowerCase();
+      return usernames.includes(uname);
+    });
+    mentionedIds = mentioned.map((u) => u._id);
+  }
 
   const comment = {
     user: req.user._id,
@@ -490,6 +693,87 @@ export const getComments = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Task not found");
   }
+  // Notify mentioned users (excluding the comment author mentioning themselves).
+  // Persist a Notification per recipient, then push it to their personal room
+  // so it appears in real time and survives a page reload.
+  const recipientIds = mentionedIds.filter(
+    (mid) => mid.toString() !== req.user._id.toString()
+  );
+
+  if (recipientIds.length > 0) {
+    const created = await Notification.insertMany(
+      recipientIds.map((rid) => ({
+        recipient: rid,
+        sender: req.user._id,
+        type: "mention",
+        task: task._id,
+        message: `${req.user.name} mentioned you in a comment on "${task.title}"`,
+      }))
+    );
+
+    created.forEach((doc) => emitNotification(doc.recipient, doc));
+  }
+
+  task.assignedTo.forEach((uid) => emitTaskUpdate(uid, task));
+
+  // Return the saved subdocument — not the local `comment` object — so the
+  // caller receives the Mongoose-assigned _id and createdAt timestamp.
+  // Without this, the frontend cannot key or timestamp the new comment.
+  const savedComment = task.comments[task.comments.length - 1];
+
+  res.json({
+    success: true,
+    data: savedComment,
+  });
+});
+
+/* ================= EDIT COMMENT ================= */
+
+export const editComment = asyncHandler(async (req, res) => {
+  const { text } = req.body;
+  const { id, commentId } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  if (!validateObjectId(commentId)) {
+    res.status(400);
+    throw new Error("Invalid comment id");
+  }
+
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  // Find the comment subdocument by its _id using Mongoose's built-in helper.
+  const comment = task.comments.id(commentId);
+  if (!comment) {
+    res.status(404);
+    throw new Error("Comment not found");
+  }
+
+  // Only the comment author or an admin may edit the comment.
+  if (
+    comment.user.toString() !== req.user._id.toString() &&
+    req.user.role !== "admin"
+  ) {
+    res.status(403);
+    throw new Error("Not authorized to edit this comment");
+  }
+
+  comment.text = text.trim();
+  comment.edited = true;
+
+  task.activityLogs.push({
+    action: "comment_edited",
+    user: req.user._id,
+  });
+
+  await task.save();
 
   res.json({
     success: true,
@@ -497,11 +781,159 @@ export const getComments = asyncHandler(async (req, res) => {
   });
 });
 
+/* ================= ADD SUBTASK ================= */
+
+export const addSubtask = asyncHandler(async (req, res) => {
+  const { title } = req.body;
+  const { id } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  // Only the creator, an assignee, or an admin may modify subtasks.
+  checkPermission(task, req.user);
+
+  task.subTasks.push({ title: title.trim() });
+
+  task.activityLogs.push({
+    action: "subtask_added",
+    user: req.user._id,
+  });
+
+  await task.save();
+
+  // Notify everyone watching/assigned that the task changed in real time.
+  task.assignedTo.forEach((uid) => emitTaskUpdate(uid, task));
+
+  // Return the saved subdocument so the caller gets its _id immediately.
+  const savedSubtask = task.subTasks[task.subTasks.length - 1];
+
+  res.status(201).json({
+    success: true,
+    data: savedSubtask,
+  });
+});
+
+/* ================= TOGGLE SUBTASK ================= */
+
+export const toggleSubtask = asyncHandler(async (req, res) => {
+  const { id, subId } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  if (!validateObjectId(subId)) {
+    res.status(400);
+    throw new Error("Invalid subtask id");
+  }
+
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  checkPermission(task, req.user);
+
+  const subtask = task.subTasks.id(subId);
+  if (!subtask) {
+    res.status(404);
+    throw new Error("Subtask not found");
+  }
+
+  subtask.completed = !subtask.completed;
+
+  task.activityLogs.push({
+    action: "subtask_completed",
+    user: req.user._id,
+  });
+
+  await task.save();
+
+  task.assignedTo.forEach((uid) => emitTaskUpdate(uid, task));
+
+  res.json({
+    success: true,
+    data: subtask,
+  });
+});
+
+/* ================= DELETE SUBTASK ================= */
+
+export const deleteSubtask = asyncHandler(async (req, res) => {
+  const { id, subId } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  if (!validateObjectId(subId)) {
+    res.status(400);
+    throw new Error("Invalid subtask id");
+  }
+
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  checkPermission(task, req.user);
+
+  const subtask = task.subTasks.id(subId);
+  if (!subtask) {
+    res.status(404);
+    throw new Error("Subtask not found");
+  }
+
+  subtask.deleteOne();
+
+  task.activityLogs.push({
+    action: "subtask_deleted",
+    user: req.user._id,
+  });
+
+  await task.save();
+
+  task.assignedTo.forEach((uid) => emitTaskUpdate(uid, task));
+
+  res.json({
+    success: true,
+    message: "Subtask removed",
+  });
+});
+
 /* ================= TOGGLE WATCHER ================= */
 
 export const toggleWatcher = asyncHandler(async (req, res) => {
-  const task = await Task.findById(req.params.id);
-  if (!task) throw new Error("Task not found");
+  const { id } = req.params;
+
+  if (!validateObjectId(id)) {
+    res.status(400);
+    throw new Error("Invalid task id");
+  }
+
+  const task = await Task.findOne({ _id: id, isDeleted: { $ne: true } });
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  // Watching a task is a task-scoped action; restrict it to the creator,
+  // assignees, or an admin. Previously this endpoint had no permission check,
+  // so any authenticated user could watch/unwatch any task by id (IDOR).
+  checkPermission(task, req.user);
 
   const userId = req.user._id;
 
@@ -533,17 +965,20 @@ export const getTaskStats = asyncHandler(async (req, res) => {
     statusAggregation,
     priorityAggregation,
   ] = await Promise.all([
-    Task.countDocuments(),
-    Task.countDocuments({ status: "done" }),
-    Task.countDocuments({ status: { $ne: "done" } }),
+    Task.countDocuments({ isDeleted: { $ne: true } }),
+    Task.countDocuments({ status: "done", isDeleted: { $ne: true } }),
+    Task.countDocuments({ status: { $ne: "done" }, isDeleted: { $ne: true } }),
     Task.countDocuments({
       deadline: { $lt: now },
       status: { $ne: "done" },
+      isDeleted: { $ne: true },
     }),
     Task.aggregate([
+      { $match: { isDeleted: { $ne: true } } },
       { $group: { _id: "$status", count: { $sum: 1 } } },
     ]),
     Task.aggregate([
+      { $match: { isDeleted: { $ne: true } } },
       { $group: { _id: "$priority", count: { $sum: 1 } } },
     ]),
   ]);

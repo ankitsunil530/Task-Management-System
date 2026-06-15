@@ -1,4 +1,4 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 export const createTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -24,5 +24,21 @@ export const updateTaskSchema = z.object({
 });
 
 export const assignTaskSchema = z.object({
-  userId: z.string().min(1, "userId is required"),
+  userIds: z
+    .array(z.string().min(1, "Each userId must be a non-empty string"))
+    .min(1, "userIds must contain at least one user"),
+});
+
+export const addCommentSchema = z.object({
+  text: z
+    .string()
+    .min(1, "Comment text is required")
+    .max(500, "Comment must be 500 characters or fewer"),
+});
+
+export const addSubtaskSchema = z.object({
+  title: z
+    .string()
+    .min(1, "Subtask title is required")
+    .max(200, "Subtask title must be 200 characters or fewer"),
 });

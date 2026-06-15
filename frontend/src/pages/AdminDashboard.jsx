@@ -3,7 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
 import api from "../api/axios";
+import { logout, setProfilePicture } from "../features/auth/authSlice";
 import { getAllTasks } from "../features/tasks/taskSlice";
+import { updateProfilePictureAPI } from "../features/auth/authService";
+import { uploadToCloudinary } from "../utils/cloudinary";
+
+import Avatar from "../components/Avatar";
 
 import TaskCard from "../components/TaskCard";
 import KanbanBoard from "./KanbanBoard";
@@ -21,6 +26,7 @@ export default function AdminDashboard() {
   const { user } = useSelector((s) => s.auth);
 
   const [view, setView] = useState("list"); // list | kanban
+  const [uploading, setUploading] = useState(false);
 
   // ✅ SAFE INITIAL STATS (VERY IMPORTANT)
   const [stats, setStats] = useState({
@@ -59,6 +65,44 @@ export default function AdminDashboard() {
     dispatch(getAllTasks());
   }, [dispatch]);
 
+  /* ================= LOGOUT ================= */
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/");
+  };
+
+  /* ================= PROFILE PICTURE ================= */
+  const handleProfileUpload = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const url = await uploadToCloudinary(file);
+      await updateProfilePictureAPI(url);
+      dispatch(setProfilePicture(url));
+      toast.success("Profile picture updated");
+    } catch (err) {
+      toast.error(err.message || "Failed to update picture");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    try {
+      setUploading(true);
+      await updateProfilePictureAPI("");
+      dispatch(setProfilePicture(""));
+      toast.success("Profile picture removed");
+    } catch (err) {
+      toast.error(err.message || "Failed to remove picture");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-950 text-gray-400 flex items-center justify-center">
@@ -80,11 +124,44 @@ export default function AdminDashboard() {
 
           {/* ========== ADMIN PROFILE CARD ========== */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
-            <img
-              src={`https://ui-avatars.com/api/?name=${user?.name}&background=4f46e5&color=fff`}
-              alt="Admin Avatar"
-              className="w-28 h-28 rounded-full mx-auto mb-4 border border-gray-700"
+            <Avatar
+              src={user?.profilePicture}
+              name={user?.name}
+              size={112}
+              className="mx-auto mb-4 border border-gray-700"
             />
+
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <label
+                className={`cursor-pointer text-xs text-indigo-400 hover:underline ${
+                  uploading ? "opacity-50 pointer-events-none" : ""
+                }`}
+              >
+                {uploading
+                  ? "Uploading..."
+                  : user?.profilePicture
+                  ? "Change Photo"
+                  : "Upload Photo"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleProfileUpload}
+                  disabled={uploading}
+                  className="hidden"
+                />
+              </label>
+
+              {user?.profilePicture && (
+                <button
+                  type="button"
+                  onClick={handleRemovePhoto}
+                  disabled={uploading}
+                  className="text-xs text-red-400 hover:underline disabled:opacity-50"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
 
             <h2 className="font-semibold text-lg">{user?.name}</h2>
             <p className="text-sm text-gray-400">{user?.email}</p>

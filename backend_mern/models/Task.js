@@ -62,6 +62,10 @@ const activitySchema = new mongoose.Schema({
       "assigned",
       "priority_changed",
       "comment_added",
+      "subtask_added",
+      "subtask_completed",
+      "subtask_deleted",
+      "comment_edited",
       "updated",
       "deleted",
     ],
@@ -194,6 +198,11 @@ const taskSchema = new mongoose.Schema(
     isDeleted: {
       type: Boolean,
       default: false,
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true }
