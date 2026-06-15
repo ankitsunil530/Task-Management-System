@@ -2,11 +2,14 @@ import asyncHandler from "express-async-handler";
 import mongoose from "mongoose";
 import Task from "../models/Task.js";
 import User from "../models/User.js";
+import Notification from "../models/Notification.js";
 import { getTaskNotification } from "../utils/taskNotification.js";
 import {
   emitTaskCreated,
   emitTaskUpdate,
   emitTaskDeleted,
+  emitNotification,
+  emitNewComment,
 } from "../utils/socket.js";
 
 const VALID_STATUS = ["todo", "in-progress", "done"];
@@ -209,13 +212,38 @@ export const updateTask = asyncHandler(async (req, res) => {
   const updates = [];
 
   if (status && status !== task.status) {
+    const oldStatus = task.status;
     task.activityLogs.push({
       action: "status_changed",
       user: req.user._id,
-      oldValue: task.status,
+      oldValue: oldStatus,
       newValue: status,
     });
     task.status = status;
+
+    // Create notifications for all assigned users (except the sender)
+    for (const uid of task.assignedTo) {
+      if (uid.toString() !== req.user._id.toString()) {
+        try {
+          const notification = await Notification.create({
+            recipient: uid,
+            sender: req.user._id,
+            task: task._id,
+            type: "status_change",
+            message: `Task "${task.title}" status changed to ${status}`,
+          });
+
+          const populated = await notification.populate([
+            { path: "sender", select: "name" },
+            { path: "task", select: "title" },
+          ]);
+
+          emitNotification(uid, populated);
+        } catch (err) {
+          console.error("Error creating status change notification:", err);
+        }
+      }
+    }
   }
 
   if (priority && priority !== task.priority) {
@@ -304,16 +332,24 @@ export const deleteTask = asyncHandler(async (req, res) => {
 /* ================= ASSIGN MULTIPLE USERS ================= */
 
 export const assignTask = asyncHandler(async (req, res) => {
-  const { userIds } = req.body;
+  let { userIds, userId } = req.body;
   const { id } = req.params;
+
+  if (userId && !userIds) {
+    userIds = [userId];
+  }
 
   if (!Array.isArray(userIds)) {
     res.status(400);
-    throw new Error("userIds must be an array");
+    throw new Error("userIds must be an array or userId must be provided");
   }
 
   const task = await Task.findById(id);
   if (!task) throw new Error("Task not found");
+
+  // Get previous assignees to identify newly assigned users
+  const previousAssignees = (task.assignedTo || []).map((uid) => uid.toString());
+  const newAssignees = userIds.filter((uid) => !previousAssignees.includes(uid.toString()));
 
   task.assignedTo = userIds;
 
@@ -324,11 +360,43 @@ export const assignTask = asyncHandler(async (req, res) => {
 
   await task.save();
 
-  userIds.forEach((uid) => emitTaskUpdate(uid, task));
+  // Create notifications and emit via Socket.io
+  for (const uid of newAssignees) {
+    if (uid.toString() !== req.user._id.toString()) {
+      try {
+        const notification = await Notification.create({
+          recipient: uid,
+          sender: req.user._id,
+          task: task._id,
+          type: "assignment",
+          message: `You have been assigned to task: "${task.title}"`,
+        });
+
+        const populated = await notification.populate([
+          { path: "sender", select: "name email" },
+          { path: "task", select: "title" },
+        ]);
+
+        emitNotification(uid, populated);
+      } catch (err) {
+        console.error("Error creating assignment notification:", err);
+      }
+    }
+  }
+
+  // Populate assignedTo and createdBy when sending response
+  const updatedTask = await Task.findById(id)
+    .populate("createdBy", "name email")
+    .populate("assignedTo", "name email");
+
+  const responseTask = buildTaskResponse(updatedTask);
+
+  // Emit task update to all assigned users
+  userIds.forEach((uid) => emitTaskUpdate(uid, responseTask));
 
   res.json({
     success: true,
-    data: task,
+    data: responseTask,
   });
 });
 
@@ -365,11 +433,67 @@ export const addComment = asyncHandler(async (req, res) => {
 
   await task.save();
 
-  task.assignedTo.forEach((uid) => emitTaskUpdate(uid, task));
+  const newComment = task.comments[task.comments.length - 1];
+  const responseComment = {
+    ...newComment._doc,
+    user: {
+      _id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+    }
+  };
+
+  // Emit task update to all assigned users
+  const responseTask = buildTaskResponse(task);
+  task.assignedTo.forEach((uid) => emitTaskUpdate(uid, responseTask));
+
+  // Emit newComment event to task room for live chat synchronization
+  emitNewComment(id, responseComment);
+
+  // Create notifications and emit to all assignees (except commenter)
+  for (const uid of task.assignedTo) {
+    if (uid.toString() !== req.user._id.toString()) {
+      try {
+        const notification = await Notification.create({
+          recipient: uid,
+          sender: req.user._id,
+          task: task._id,
+          type: "comment",
+          message: `${req.user.name} commented on "${task.title}": "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`,
+        });
+
+        const populated = await notification.populate([
+          { path: "sender", select: "name" },
+          { path: "task", select: "title" },
+        ]);
+
+        emitNotification(uid, populated);
+      } catch (err) {
+        console.error("Error creating comment notification:", err);
+      }
+    }
+  }
 
   res.json({
     success: true,
-    data: comment,
+    data: responseComment,
+  });
+});
+
+/* ================= GET COMMENTS ================= */
+
+export const getComments = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const task = await Task.findById(id).populate("comments.user", "name email");
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found");
+  }
+
+  res.json({
+    success: true,
+    data: task.comments || [],
   });
 });
 

@@ -1,7 +1,14 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { socket } from "./socket";
+import {
+  socketTaskCreated,
+  socketTaskUpdated,
+  socketTaskDeleted,
+  socketCommentAdded,
+} from "./features/tasks/taskSlice";
+import { socketNotificationReceived } from "./features/notifications/notificationSlice";
 
 // Public pages
 import Home from "./components/Home";
@@ -22,6 +29,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
+  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
   /* ================= SOCKET CONNECTION ================= */
@@ -42,25 +50,29 @@ function App() {
       // 🔥 Real-time task updates
       socket.on("taskUpdated", (task) => {
         console.log("📌 Task updated:", task);
-        // 👉 later dispatch redux action
+        dispatch(socketTaskUpdated(task));
       });
 
       socket.on("taskCreated", (task) => {
         console.log("🆕 Task created:", task);
+        dispatch(socketTaskCreated(task));
       });
 
       socket.on("taskDeleted", (taskId) => {
         console.log("❌ Task deleted:", taskId);
+        dispatch(socketTaskDeleted(taskId));
       });
 
       // 🔥 NEW: comment event
       socket.on("newComment", (data) => {
         console.log("💬 New comment:", data);
+        dispatch(socketCommentAdded(data));
       });
 
       // 🔥 NEW: notification event (mentions/watchers)
       socket.on("notification", (data) => {
         console.log("🔔 Notification:", data);
+        dispatch(socketNotificationReceived(data));
       });
     }
 

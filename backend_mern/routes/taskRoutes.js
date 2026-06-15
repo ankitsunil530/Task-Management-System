@@ -14,6 +14,7 @@ import {
   getTaskStats,
   addComment,        // 🔥 NEW
   toggleWatcher,     // 🔥 NEW
+  getComments,
 } from "../controllers/taskController.js";
 
 import {
@@ -46,6 +47,9 @@ router.delete("/:id", protect, deleteTask);
 
 // 🔥 Add Comment
 router.post("/:id/comment", protect, addComment);
+
+// 🔥 Get Comments
+router.get("/:id/comments", protect, getComments);
 
 // 🔥 Toggle Watcher (subscribe/unsubscribe)
 router.patch("/:id/watch", protect, toggleWatcher);

@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import { getMyTasks } from "../features/tasks/taskSlice";
-import { logout } from "../features/auth/authSlice";
 
 import TaskCard from "../components/TaskCard";
 import CreateTaskModal from "../components/CreateTaskModal";
+import Navbar from "../components/Navbar";
 import KanbanBoard from "./KanbanBoard";
 
 // Charts
@@ -17,7 +16,6 @@ import OverdueChart from "../components/charts/OverdueChart";
 
 export default function UserDashboard() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const { list, isLoading } = useSelector((s) => s.tasks);
   const { user } = useSelector((s) => s.auth);
@@ -51,12 +49,6 @@ export default function UserDashboard() {
       notifiedRef.current.add(task._id);
     });
   }, [list]);
-
-  /* ================= LOGOUT ================= */
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate("/");
-  };
 
   /* ================= PROFILE IMAGE ================= */
   const handleProfileUpload = (e) => {
@@ -101,18 +93,7 @@ export default function UserDashboard() {
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
 
       {/* ================= NAVBAR ================= */}
-      <nav className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-indigo-400">
-          Task Manager
-        </h1>
-
-        <button
-          onClick={handleLogout}
-          className="text-sm bg-red-600 px-3 py-1 rounded hover:bg-red-700"
-        >
-          Logout
-        </button>
-      </nav>
+      <Navbar />
 
       {/* ================= MAIN ================= */}
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
