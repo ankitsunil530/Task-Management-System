@@ -1,4 +1,5 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import {
   registerUser,
   loginUser,
@@ -13,10 +14,20 @@ import protect from "../middlewares/authWebToken.js";
 import admin from "../middlewares/adminMiddleware.js";
 
 const router = express.Router();
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: "Too many requests, please try again later.",
+  },
+});
 
 // 🔐 Auth
-router.post("/register", registerUser);
-router.post("/login", loginUser);
+router.post("/register", authLimiter, registerUser);
+router.post("/login", authLimiter, loginUser);
 router.post("/logout", protect, logoutUser);
 
 // 👤 User
