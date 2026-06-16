@@ -11,7 +11,7 @@ import connectDB from "./db/db.js";
 import authRoute from "./routes/authRoute.js";
 import taskRoute from "./routes/taskRoutes.js";
 import notificationRoute from "./routes/notificationRoute.js";
-import notificationRoute from "./routes/notificationRoutes.js";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
