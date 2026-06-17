@@ -2,7 +2,28 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 import { loginAPI, registerAPI } from "./authService";
 
-const user = JSON.parse(localStorage.getItem("user"));
+// Decode a JWT's `exp` claim (standard base64url JSON — no library needed) and
+// check it against the current time. Returns false for a missing, malformed, or
+// expired token so a stale 7-day-old session never re-hydrates as "logged in".
+const isTokenValid = (token) => {
+  if (!token) return false;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+};
+
+const storedToken = localStorage.getItem("token");
+// If the stored token is invalid/expired, clear the session before the Redux
+// store initialises so the user never briefly appears logged in on boot.
+if (!isTokenValid(storedToken)) {
+  localStorage.clear();
+}
+const user = isTokenValid(storedToken)
+  ? JSON.parse(localStorage.getItem("user"))
+  : null;
 
 export const login = createAsyncThunk(
   "auth/login",
