@@ -129,16 +129,17 @@ export default function Login() {
 
           {/* Submit Button */}
           <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full py-2.5 rounded-lg font-medium transition 
-              ${isLoading
-                ? "bg-gray-700 text-gray-300 cursor-not-allowed"
-                : "bg-indigo-600 hover:bg-indigo-700 text-white"
-              }`}
-          >
-            {isLoading ? "Signing in..." : "Sign In"}
-          </button>
+  type="submit"
+  disabled={isLoading}
+  className={`w-full py-2.5 rounded-lg font-medium transition-all duration-300
+    ${
+      isLoading
+        ? "bg-gray-700 text-gray-300 cursor-not-allowed"
+        : "bg-indigo-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:bg-indigo-700 hover:scale-105 hover:shadow-[0_0_35px_rgba(99,102,241,0.7)] active:scale-95"
+    }`}
+>
+  {isLoading ? "Signing in..." : "Sign In"}
+</button>
           {/* Signup Redirect */}
           <div className="mt-6 text-center text-sm text-gray-400">
             Don’t have an account?{" "}
