@@ -32,6 +32,7 @@ export const assignTaskSchema = z.object({
 export const addCommentSchema = z.object({
   text: z
     .string()
+    .trim()
     .min(1, "Comment text is required")
     .max(500, "Comment must be 500 characters or fewer"),
 });
