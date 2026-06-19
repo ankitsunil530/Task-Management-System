@@ -27,7 +27,7 @@ function Header() {
             className="h-9 w-9 rounded-full"
           />
           <span className="text-white text-xl font-bold tracking-wide">
-            taskphiles
+            TaskPhiles
           </span>
         </div>
 
@@ -51,20 +51,46 @@ function Header() {
 
         {/* Actions */}
         <div className="hidden md:flex items-center gap-4">
-          <button
-            onClick={() => navigate("/login")}
-            className="px-5 py-2 rounded-lg text-sm font-semibold border border-slate-700 text-slate-200 hover:bg-slate-800 transition"
-          >
-            Login
-          </button>
+  <button
+    onClick={() => navigate("/login")}
+    className="
+      px-5 py-2
+      rounded-lg
+      text-sm font-semibold
+      border border-blue-500/30
+      text-slate-200
+      shadow-lg shadow-blue-500/10
+      transition-all duration-300
+      hover:bg-slate-800
+      hover:scale-105
+      hover:border-blue-500
+      hover:text-blue-400
+      hover:shadow-xl hover:shadow-blue-500/30
+      active:scale-95
+    "
+  >
+    Login
+  </button>
 
-          <button
-            onClick={() => navigate("/register")}
-            className="px-5 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 transition"
-          >
-            Sign up
-          </button>
-        </div>
+  <button
+    onClick={() => navigate("/register")}
+    className="
+      px-5 py-2
+      rounded-lg
+      text-sm font-semibold
+      bg-blue-600
+      text-white
+      shadow-[0_0_20px_rgba(59,130,246,0.4)]
+      transition-all duration-300
+      hover:bg-blue-700
+      hover:scale-105
+      hover:shadow-[0_0_35px_rgba(59,130,246,0.6)]
+      active:scale-95
+    "
+  >
+    Sign up
+  </button>
+</div>
 
         {/* Mobile Toggle */}
         <button
@@ -95,24 +121,44 @@ function Header() {
 
           <div className="pt-4 flex flex-col gap-3">
             <button
-              onClick={() => {
-                setIsOpen(false);
-                navigate("/login");
-              }}
-              className="w-full py-2 rounded-lg border border-slate-700 text-slate-200"
-            >
-              Login
-            </button>
+  onClick={() => {
+    setIsOpen(false);
+    navigate("/login");
+  }}
+  className="
+    w-full py-2 rounded-lg
+    border border-slate-700
+    text-slate-200
+    transition-all duration-300
+    hover:bg-slate-800
+    hover:scale-105
+    hover:border-blue-500/50
+    hover:shadow-lg hover:shadow-blue-500/20
+    active:scale-95
+  "
+>
+  Login
+</button>
 
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                navigate("/register");
-              }}
-              className="w-full py-2 rounded-lg bg-blue-600 text-white"
-            >
-              Sign up
-            </button>
+<button
+  onClick={() => {
+    setIsOpen(false);
+    navigate("/register");
+  }}
+  className="
+    w-full py-2 rounded-lg
+    bg-blue-600 text-white
+    font-medium
+    transition-all duration-300
+    hover:bg-blue-700
+    hover:scale-105
+    hover:-translate-y-0.5
+    hover:shadow-lg hover:shadow-blue-500/30
+    active:scale-95
+  "
+>
+  Sign up
+</button>
           </div>
         </div>
       )}

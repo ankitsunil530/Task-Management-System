@@ -122,11 +122,23 @@ export default function AdminDashboard() {
         </h1>
 
         <button
-          onClick={handleLogout}
-          className="text-sm bg-red-600 px-3 py-1 rounded hover:bg-red-700"
-        >
-          Logout
-        </button>
+  onClick={handleLogout}
+  className="
+    text-sm
+    bg-red-600
+    text-white
+    px-3 py-1
+    rounded-lg
+    shadow-[0_0_15px_rgba(239,68,68,0.4)]
+    transition-all duration-300
+    hover:bg-red-700
+    hover:scale-105
+    hover:shadow-[0_0_30px_rgba(239,68,68,0.7)]
+    active:scale-95
+  "
+>
+  Logout
+</button>
       </nav>
 
       {/* ================= MAIN ================= */}
