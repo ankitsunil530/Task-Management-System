@@ -10,8 +10,13 @@ import {
   deleteUser,
 } from "../controllers/authController.js";
 
+import { validate } from "../middlewares/validate.js";
 import protect from "../middlewares/authWebToken.js";
 import admin from "../middlewares/adminMiddleware.js";
+import {
+  loginAuthSchema,
+  registerAuthSchema,
+} from "../validations/authValidation.js";
 
 const router = express.Router();
 const authLimiter = rateLimit({
@@ -26,8 +31,8 @@ const authLimiter = rateLimit({
 });
 
 // 🔐 Auth
-router.post("/register", authLimiter, registerUser);
-router.post("/login", authLimiter, loginUser);
+router.post("/register", authLimiter, validate(registerAuthSchema), registerUser);
+router.post("/login", authLimiter, validate(loginAuthSchema), loginUser);
 router.post("/logout", protect, logoutUser);
 
 // 👤 User
