@@ -1,4 +1,5 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import {
   registerUser,
   loginUser,
@@ -9,14 +10,29 @@ import {
   deleteUser,
 } from "../controllers/authController.js";
 
+import { validate } from "../middlewares/validate.js";
 import protect from "../middlewares/authWebToken.js";
 import admin from "../middlewares/adminMiddleware.js";
+import {
+  loginAuthSchema,
+  registerAuthSchema,
+} from "../validations/authValidation.js";
 
 const router = express.Router();
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: "Too many requests, please try again later.",
+  },
+});
 
 // 🔐 Auth
-router.post("/register", registerUser);
-router.post("/login", loginUser);
+router.post("/register", authLimiter, validate(registerAuthSchema), registerUser);
+router.post("/login", authLimiter, validate(loginAuthSchema), loginUser);
 router.post("/logout", protect, logoutUser);
 
 // 👤 User

@@ -12,13 +12,23 @@ function Footer() {
 
         {/* Brand */}
         <div>
-          <h2 className="text-2xl font-bold text-white mb-4">taskphiles</h2>
-          <p className="text-slate-400 leading-relaxed">
-            Simplify your task management with{" "}
-            <span className="text-white font-semibold">taskphiles</span>.
-            Organize, prioritize, and stay productive effortlessly.
-          </p>
-        </div>
+  <div className="flex items-center gap-3 mb-4">
+    <img
+      src="https://preview.redd.it/hi-this-is-a-logo-for-the-task-manager-application-called-v0-si3hzlaglc7b1.png?width=640&crop=smart&auto=webp&s=04d231d246026a59f988ac183a82e0ea2ca8ef4e" // replace with your logo path
+      alt="TaskPhiles Logo"
+      className="w-10 h-10 object-contain"
+    />
+    <h2 className="text-2xl font-bold text-white">
+      TaskPhiles
+    </h2>
+  </div>
+
+  <p className="text-slate-400 leading-relaxed">
+    Simplify your task management with{" "}
+    <span className="text-white font-semibold">TaskPhiles</span>.
+    Organize, prioritize, and stay productive effortlessly.
+  </p>
+</div>
 
         {/* Links */}
         <div>
@@ -62,11 +72,23 @@ function Footer() {
               className="flex-1 bg-[#111827] text-slate-200 px-4 py-2 rounded-l-lg outline-none border border-slate-700 focus:border-blue-500"
             />
             <button
-              type="submit"
-              className="bg-blue-600 px-4 py-2 rounded-r-lg text-white font-semibold hover:bg-blue-700 transition"
-            >
-              Subscribe
-            </button>
+  type="submit"
+  className="
+    bg-blue-600
+    px-4 py-2
+    rounded-r-lg
+    text-white
+    font-semibold
+    shadow-[0_0_20px_rgba(59,130,246,0.4)]
+    transition-all duration-300
+    hover:bg-blue-700
+    hover:scale-105
+    hover:shadow-[0_0_35px_rgba(59,130,246,0.7)]
+    active:scale-95
+  "
+>
+  Subscribe
+</button>
           </form>
         </div>
       </div>

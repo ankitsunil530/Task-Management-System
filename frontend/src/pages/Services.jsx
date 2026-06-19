@@ -38,29 +38,42 @@ function Services() {
         </h1>
 
         <p className="max-w-3xl mx-auto text-slate-400 mb-16">
-          taskphiles provides powerful tools to organize tasks, improve team
+          TaskPhiles provides powerful tools to organize tasks, improve team
           collaboration, and track productivity — all in one modern platform.
         </p>
 
         {/* Services Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {services.map((service, i) => (
-            <div
-              key={i}
-              className="bg-[#111827] border border-slate-800 rounded-2xl p-8 hover:border-blue-500/40 hover:shadow-xl transition"
-            >
-              <div className="text-4xl text-blue-400 mb-5 flex justify-center">
-                {service.icon}
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-3">
-                {service.title}
-              </h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                {service.desc}
-              </p>
-            </div>
-          ))}
-        </div>
+  {services.map((service, i) => (
+    <div
+      key={i}
+      className="
+        bg-[#111827]
+        border border-blue-500/20
+        rounded-2xl
+        p-8
+        shadow-[0_0_20px_rgba(59,130,246,0.1)]
+        transition-all duration-300
+        hover:-translate-y-2
+        hover:scale-105
+        hover:border-blue-500/50
+        hover:shadow-[0_15px_40px_rgba(59,130,246,0.3)]
+      "
+    >
+      <div className="text-4xl text-blue-400 mb-5 flex justify-center">
+        {service.icon}
+      </div>
+
+      <h3 className="text-xl font-semibold text-white mb-3">
+        {service.title}
+      </h3>
+
+      <p className="text-slate-400 text-sm leading-relaxed">
+        {service.desc}
+      </p>
+    </div>
+  ))}
+</div>
       </div>
     </main>
   );

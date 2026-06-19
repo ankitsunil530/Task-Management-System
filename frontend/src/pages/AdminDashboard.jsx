@@ -116,6 +116,30 @@ export default function AdminDashboard() {
 
       {/* ================= NAVBAR ================= */}
       <Navbar />
+      <nav className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
+        <h1 className="text-xl font-bold text-indigo-400">
+          Task Manager — Admin
+        </h1>
+
+        <button
+  onClick={handleLogout}
+  className="
+    text-sm
+    bg-red-600
+    text-white
+    px-3 py-1
+    rounded-lg
+    shadow-[0_0_15px_rgba(239,68,68,0.4)]
+    transition-all duration-300
+    hover:bg-red-700
+    hover:scale-105
+    hover:shadow-[0_0_30px_rgba(239,68,68,0.7)]
+    active:scale-95
+  "
+>
+  Logout
+</button>
+      </nav>
 
       {/* ================= MAIN ================= */}
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
