@@ -160,7 +160,11 @@ export const createTask = asyncHandler(async (req, res) => {
 /* ================= GET MY TASKS ================= */
 
 export const getMyTasks = asyncHandler(async (req, res) => {
-  const tasks = await Task.find({
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(Math.max(1, Number(req.query.limit) || 10), MAX_LIMIT);
+  const skip = (page - 1) * limit;
+
+  const filter = {
     // Exclude soft-deleted tasks so a deleted task disappears from listings.
     isDeleted: { $ne: true },
     // Return tasks the user is assigned to OR created, so a creator still sees
@@ -169,13 +173,24 @@ export const getMyTasks = asyncHandler(async (req, res) => {
       { assignedTo: { $in: [req.user._id] } },
       { createdBy: req.user._id },
     ],
-  })
-    .populate("createdBy", "name email profilePicture")
-    .sort({ createdAt: -1 });
+  };
+
+  const [tasks, total] = await Promise.all([
+    Task.find(filter)
+      .populate("createdBy", "name email profilePicture")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+    Task.countDocuments(filter),
+  ]);
 
   res.json({
     success: true,
+    total,
+    page,
+    pages: Math.ceil(total / limit),
     count: tasks.length,
+    limit,
     data: tasks.map(buildTaskResponse),
   });
 });
