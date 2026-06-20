@@ -66,7 +66,18 @@ function ContactUs() {
 
         <div className="grid gap-12 md:grid-cols-2">
           {/* Form */}
-          <div className="rounded-2xl border border-slate-800 bg-[#111827] p-8 shadow-xl">
+          <div
+  className="
+    rounded-2xl
+    border border-blue-500/20
+    bg-[#111827]
+    p-8
+    shadow-[0_0_30px_rgba(59,130,246,0.12)]
+    transition-all duration-300
+    hover:border-blue-500/40
+    hover:shadow-[0_0_50px_rgba(59,130,246,0.25)]
+  "
+>
             <h2 className="mb-6 text-2xl font-semibold text-white">Send a message</h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -106,16 +117,40 @@ function ContactUs() {
               </div>
 
               <button
-                type="submit"
-                className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700"
-              >
-                Send message
-              </button>
+  type="submit"
+  className="
+    w-full
+    rounded-lg
+    bg-blue-600
+    py-3
+    font-semibold
+    text-white
+    shadow-[0_0_20px_rgba(59,130,246,0.4)]
+    transition-all duration-300
+    hover:bg-blue-700
+    hover:scale-[1.02]
+    hover:shadow-[0_0_35px_rgba(59,130,246,0.7)]
+    active:scale-95
+  "
+>
+  Send message
+</button>
             </form>
           </div>
 
           {/* Info */}
-          <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-[#111827] p-5 shadow-xl">
+          <div
+  className="
+    rounded-2xl
+    border border-blue-500/20
+    bg-[#111827]
+    p-8
+    shadow-[0_0_30px_rgba(59,130,246,0.12)]
+    transition-all duration-300
+    hover:border-blue-500/40
+    hover:shadow-[0_0_50px_rgba(59,130,246,0.25)]
+  "
+>
             <div className="absolute right-0 top-0 h-28 w-28 rounded-full bg-blue-600/20 blur-3xl" />
             <div className="absolute bottom-0 left-0 h-20 w-20 rounded-full bg-cyan-500/10 blur-3xl" />
 

@@ -46,23 +46,42 @@ function AboutUs() {
 
       {/* Stats Section */}
       <section className="border-t border-slate-800 py-16">
-        <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+  <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
 
-          {[
-            { value: "10K+", label: "Tasks Managed" },
-            { value: "1K+", label: "Users" },
-            { value: "99.9%", label: "Uptime" },
-            { value: "24/7", label: "Support" },
-          ].map((stat, i) => (
-            <div key={i}>
-              <h3 className="text-3xl font-bold text-white mb-2">
-                {stat.value}
-              </h3>
-              <p className="text-slate-400">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+    {[
+      { value: "10K+", label: "Tasks Managed" },
+      { value: "1K+", label: "Users" },
+      { value: "99.9%", label: "Uptime" },
+      { value: "24/7", label: "Support" },
+    ].map((stat, i) => (
+      <div
+        key={i}
+        className="
+          bg-[#111827]
+          p-6
+          rounded-2xl
+          text-center
+          border border-blue-500/20
+          shadow-[0_0_20px_rgba(59,130,246,0.1)]
+          transition-all duration-300
+          hover:-translate-y-2
+          hover:scale-105
+          hover:border-blue-500/50
+          hover:shadow-[0_15px_40px_rgba(59,130,246,0.3)]
+        "
+      >
+        <h3 className="text-3xl font-bold text-white mb-2">
+          {stat.value}
+        </h3>
+
+        <p className="text-slate-400">
+          {stat.label}
+        </p>
+      </div>
+    ))}
+    
+  </div>
+</section>
     </main>
   );
 }

@@ -42,9 +42,14 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900 px-4">
       <div className="w-full max-w-md bg-gray-950 border border-gray-800 rounded-2xl shadow-2xl p-8">
 
-        <h1 className="text-3xl font-bold text-white text-center mb-6">
-          Create Account 🚀
-        </h1>
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-white">
+            Create Account 🚀
+          </h1>
+          <p className="text-gray-400 mt-2 text-sm">
+            Register to manage your tasks efficiently
+          </p>
+        </div>
 
         <form onSubmit={submit} className="space-y-4">
           <input
@@ -83,16 +88,16 @@ export default function Register() {
           />
 
           <button
-            disabled={isLoading}
-            className={`w-full py-2.5 rounded-lg font-medium transition
-              ${
-                isLoading
-                  ? "bg-gray-700 text-gray-300"
-                  : "bg-indigo-600 hover:bg-indigo-700 text-white"
-              }`}
-          >
-            {isLoading ? "Creating..." : "Sign Up"}
-          </button>
+  disabled={isLoading}
+  className={`w-full py-2.5 rounded-lg font-medium transition-all duration-300
+    ${
+      isLoading
+        ? "bg-gray-700 text-gray-300 cursor-not-allowed"
+        : "bg-indigo-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:bg-indigo-700 hover:scale-105 hover:shadow-[0_0_35px_rgba(99,102,241,0.7)] active:scale-95"
+    }`}
+>
+  {isLoading ? "Creating..." : "Sign Up"}
+</button>
         </form>
 
         <p className="text-gray-400 text-sm text-center mt-4">
