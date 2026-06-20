@@ -8,23 +8,31 @@ const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 // Returns the current user's notifications (newest first) plus an unread count.
 // Supports an optional ?unread=true filter and a capped limit.
 export const getMyNotifications = asyncHandler(async (req, res) => {
-  const limit = Math.min(Number(req.query.limit) || 20, 50);
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(Math.max(1, Number(req.query.limit) || 20), 50);
+  const skip = (page - 1) * limit;
   const onlyUnread = req.query.unread === "true";
 
   const filter = { recipient: req.user._id };
   if (onlyUnread) filter.read = false;
 
-  const [notifications, unreadCount] = await Promise.all([
+  const [notifications, total, unreadCount] = await Promise.all([
     Notification.find(filter)
       .populate("sender", "name email")
       .populate("task", "title")
       .sort({ createdAt: -1 })
+      .skip(skip)
       .limit(limit),
+    Notification.countDocuments(filter),
     Notification.countDocuments({ recipient: req.user._id, read: false }),
   ]);
 
   res.json({
     success: true,
+    total,
+    page,
+    pages: Math.ceil(total / limit),
+    limit,
     unreadCount,
     count: notifications.length,
     data: notifications,
