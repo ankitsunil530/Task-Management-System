@@ -11,6 +11,7 @@ import connectDB from "./db/db.js";
 import authRoute from "./routes/authRoute.js";
 import taskRoute from "./routes/taskRoutes.js";
 import notificationRoute from "./routes/notificationRoute.js";
+import mongoose from "mongoose";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -179,12 +180,28 @@ httpServer.listen(port, () => {
 ================================ */
 process.on("SIGTERM", () => {
   console.log("📛 SIGTERM received, shutting down...");
-  httpServer.close(() => process.exit(0));
+  httpServer.close(async () => {
+    try {
+      await mongoose.connection.close();
+      console.log("🔌 MongoDB connection closed gracefully");
+    } catch (err) {
+      console.error("Error closing MongoDB connection:", err);
+    }
+    process.exit(0);
+  });
 });
 
 process.on("SIGINT", () => {
   console.log("📛 SIGINT received, shutting down...");
-  httpServer.close(() => process.exit(0));
+  httpServer.close(async () => {
+    try {
+      await mongoose.connection.close();
+      console.log("🔌 MongoDB connection closed gracefully");
+    } catch (err) {
+      console.error("Error closing MongoDB connection:", err);
+    }
+    process.exit(0);
+  });
 });
 
 process.on("unhandledRejection", (reason) => {
