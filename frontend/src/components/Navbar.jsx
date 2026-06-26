@@ -71,6 +71,11 @@ export default function Navbar() {
     return `${diffDays}d ago`;
   };
 
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
+
   return (
     <>
       <nav className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex justify-between items-center relative z-40">
