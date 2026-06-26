@@ -13,6 +13,28 @@ const notificationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
+    },
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    task: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Task",
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ["assignment", "status_change", "comment"],
+      required: true,
+    },
+    message: {
+      type: String,
+      required: true,
+    },
+    isRead: {
     },
 
     sender: {
@@ -46,6 +68,8 @@ const notificationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const Notification = mongoose.model("Notification", notificationSchema);
+export default Notification;
 // Fast lookup of a user's notifications, newest first, and of unread counts.
 notificationSchema.index({ recipient: 1, read: 1, createdAt: -1 });
 

@@ -12,6 +12,15 @@ export const emitTaskDeleted = (userId, taskId) => {
   io.to(userId.toString()).emit("taskDeleted", taskId);
 };
 
+export const emitNotification = (userId, notification) => {
+  io.to(userId.toString()).emit("notification", notification);
+};
+
+export const emitNewComment = (taskId, comment) => {
+  io.to(taskId.toString()).emit("newComment", { taskId, comment });
+};
+
+
 // Push a notification to a single user's personal room (joined via "join").
 export const emitNotification = (userId, notification) => {
   io.to(userId.toString()).emit("notification", notification);

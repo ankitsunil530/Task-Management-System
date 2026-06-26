@@ -14,6 +14,9 @@ import {
   restoreTask,
   assignTask,
   getTaskStats,
+  addComment,        // 🔥 NEW
+  toggleWatcher,     // 🔥 NEW
+  getComments,
   addComment,        //  NEW
   editComment,       //  NEW
   toggleWatcher,     //  NEW
@@ -63,6 +66,9 @@ router.post("/:id/comment", protect, validate(addCommentSchema), addComment);
 
 // 🔥 Edit Comment (author or admin only)
 router.patch("/:id/comments/:commentId", protect, validate(addCommentSchema), editComment);
+
+// 🔥 Get Comments
+router.get("/:id/comments", protect, getComments);
 
 // 🔥 Toggle Watcher (subscribe/unsubscribe)
 router.patch("/:id/watch", protect, toggleWatcher);

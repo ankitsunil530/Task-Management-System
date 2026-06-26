@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import api from "../api/axios";
@@ -13,6 +12,7 @@ import Avatar from "../components/Avatar";
 
 import TaskCard from "../components/TaskCard";
 import KanbanBoard from "./KanbanBoard";
+import Navbar from "../components/Navbar";
 
 // Charts
 import StatusPieChart from "../components/charts/StatusPieChart";
@@ -21,7 +21,6 @@ import OverdueChart from "../components/charts/OverdueChart";
 
 export default function AdminDashboard() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const { list: tasks, isLoading } = useSelector((s) => s.tasks);
   const { user } = useSelector((s) => s.auth);
@@ -116,6 +115,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
 
       {/* ================= NAVBAR ================= */}
+      <Navbar />
       <nav className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
         <h1 className="text-xl font-bold text-indigo-400">
           Task Manager — Admin

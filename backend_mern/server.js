@@ -10,7 +10,8 @@ import { Server } from "socket.io";
 import connectDB from "./db/db.js";
 import authRoute from "./routes/authRoute.js";
 import taskRoute from "./routes/taskRoutes.js";
-import notificationRoute from "./routes/notificationRoutes.js";
+import notificationRoute from "./routes/notificationRoute.js";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -157,6 +158,11 @@ io.on("connection", (socket) => {
   socket.on("join", (userId) => {
     socket.join(userId);
     console.log(`👤 User joined room: ${userId}`);
+  });
+
+  socket.on("joinTask", (taskId) => {
+    socket.join(taskId);
+    console.log(`📋 User joined task room: ${taskId}`);
   });
 
   socket.on("disconnect", () => {
