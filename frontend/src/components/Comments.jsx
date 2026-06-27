@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { socket } from "../socket";
 import Avatar from "./Avatar";
+import EmptyState from "./EmptyState";
+import { MessageCircleOff } from "lucide-react";
 
 const Comments = ({ taskId, users = [] }) => {
   const [comments, setComments] = useState([]);
@@ -134,8 +136,12 @@ const Comments = ({ taskId, users = [] }) => {
       {/* COMMENTS LIST */}
       <div className="max-h-60 overflow-y-auto space-y-2 mb-3">
         {comments.length === 0 && (
-          <p className="text-sm text-gray-400">No comments yet</p>
-        )}
+          <EmptyState
+          icon={<MessageCircleOff className="h-10 w-10" />}
+          title="No Comments"
+          description="Start the discussion by adding the first comment."
+          />
+          )}
 
         {comments.map((c) => (
           <div key={c._id} className="bg-gray-800 p-2 rounded">

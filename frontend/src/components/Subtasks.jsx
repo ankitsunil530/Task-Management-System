@@ -4,6 +4,8 @@ import {
   toggleSubtaskAPI,
   deleteSubtaskAPI,
 } from "../features/tasks/taskService";
+import EmptyState from "./EmptyState";
+import { ListTodo } from "lucide-react";
 
 // Subtask checklist for a task. Mirrors the Comments component pattern:
 // keeps its own local state seeded from the task, then syncs each change
@@ -85,7 +87,10 @@ const Subtasks = ({ taskId, initialSubtasks = [] }) => {
       {/* List */}
       <div className="space-y-2 mb-3">
         {subtasks.length === 0 ? (
-          <p className="text-sm text-gray-400">No subtasks yet</p>
+          <EmptyState
+          icon={<ListTodo className="h-10 w-10" />}title="No Subtasks"
+          description="Break your task into smaller steps by creating your first subtask."
+          />
         ) : (
           subtasks.map((s) => (
             <div
