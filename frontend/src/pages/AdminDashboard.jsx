@@ -18,6 +18,8 @@ import KanbanBoard from "./KanbanBoard";
 import StatusPieChart from "../components/charts/StatusPieChart";
 import PriorityBarChart from "../components/charts/PriorityBarChart";
 import OverdueChart from "../components/charts/OverdueChart";
+import EmptyState from "../components/EmptyState";
+import { ClipboardList } from "lucide-react";
 
 export default function AdminDashboard() {
   const dispatch = useDispatch();
@@ -248,7 +250,11 @@ export default function AdminDashboard() {
             {/* ===== TASK CONTENT ===== */}
             {view === "list" ? (
               tasks.length === 0 ? (
-                <p className="text-gray-400 text-sm">No tasks available.</p>
+                <EmptyState
+                icon={<ClipboardList className="h-12 w-12" />}
+                title="No Tasks Available"
+                description="Create your first task to start managing your team's work."
+                />
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {tasks.map((task) => (

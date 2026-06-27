@@ -8,6 +8,8 @@ import {
   markAllNotificationsRead,
   notificationReceived,
 } from "../features/notifications/notificationSlice";
+import EmptyState from "./EmptyState";
+import { BellOff } from "lucide-react";
 
 const timeAgo = (date) => {
   const diff = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
@@ -84,11 +86,13 @@ const NotificationBell = () => {
           </div>
 
           {items.length === 0 ? (
-            <p className="px-4 py-6 text-sm text-slate-400 text-center">
-              No notifications yet
-            </p>
+            <EmptyState
+            icon={<BellOff className="h-10 w-10" />}
+            title="No Notifications"
+            description="You're all caught up. New notifications will appear here."
+            />
           ) : (
-            items.map((n) => (
+            items.map((notification) => (
               <button
                 key={n._id}
                 type="button"
