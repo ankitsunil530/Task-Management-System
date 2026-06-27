@@ -20,6 +20,7 @@
     "express-rate-limit": "^8.5.2",
     "jsonwebtoken": "9.0.2",
     "mongoose": "7.5.0",
+    "nodemailer": "^9.0.1",
     "socket.io": "^4.8.3",
     "zod": "^4.3.6"
   }

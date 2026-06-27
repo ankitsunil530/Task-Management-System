@@ -35,9 +35,9 @@ const protect = async (req, res, next) => {
     }
 
     // 5️⃣ Block users who are not active even if their JWT is valid
-    if (req.user.status && req.user.status !== "active") {
+    if (req.user.status !== "active" || req.user.emailVerified === false) {
       return res.status(403).json({
-        message: "Account inactive. Contact admin.",
+        message: "Email not verified. Please check your inbox.",
       });
     } 
 

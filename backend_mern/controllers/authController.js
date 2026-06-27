@@ -1,7 +1,9 @@
 import asyncHandler from "express-async-handler";
+import crypto from "crypto";
 import User from "../models/User.js";
 import Task from "../models/Task.js";
 import generateToken from "../utils/generateToken.js";
+import { sendVerificationEmail } from "../utils/sendEmail.js";
 
 // Accepts only an https URL served from Cloudinary's media host, so the stored
 // profilePicture field can never be set to arbitrary text or a non-image origin.
@@ -34,19 +36,57 @@ export const registerUser = asyncHandler(async (req, res) => {
     throw new Error("User already exists");
   }
 
-  const user = await User.create({ name, email: normalizedEmail, password });
+  const rawVerificationToken = crypto.randomBytes(32).toString("hex");
+  const hashedVerificationToken = crypto
+    .createHash("sha256")
+    .update(rawVerificationToken)
+    .digest("hex");
 
-  res.status(201).json({
-    success: true,
-    data: {
+  const user = await User.create({
+    name,
+    email: normalizedEmail,
+    password,
+    status: "inactive",
+    emailVerified: false,
+    emailVerificationToken: hashedVerificationToken,
+    emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  });
+
+  const baseUrl = (process.env.BACKEND_URL || `${req.protocol}://${req.get("host")}`).replace(/\/$/, "");
+  const verificationUrl = `${baseUrl}/api/user/verify-email/${rawVerificationToken}`;
+
+  try {
+    const emailResult = await sendVerificationEmail({
+      to: user.email,
+      name: user.name,
+      verificationUrl,
+    });
+
+    const responseData = {
       _id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
       profilePicture: user.profilePicture,
-      token: generateToken(user._id),
-    },
-  });
+      emailVerified: user.emailVerified,
+    };
+
+    if (process.env.NODE_ENV !== "production" && emailResult?.previewUrl) {
+      responseData.verificationPreviewUrl = emailResult.previewUrl;
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Registration successful. Please verify your email address.",
+      data: responseData,
+    });
+
+    return;
+  } catch (error) {
+    await User.findByIdAndDelete(user._id);
+    res.status(500);
+    throw new Error("Unable to send verification email");
+  }
 });
 
 // ================= LOGIN =================
@@ -62,9 +102,9 @@ export const loginUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email: normalizedEmail });
 
   if (user && (await user.matchPassword(password))) {
-    if (user.status !== "active") {
+    if (user.status !== "active" || user.emailVerified === false) {
       res.status(403);
-      throw new Error("Account inactive. Contact admin.");
+      throw new Error("Email not verified. Please check your inbox.");
     }
 
     res.json({
@@ -82,6 +122,39 @@ export const loginUser = asyncHandler(async (req, res) => {
     res.status(401);
     throw new Error("Invalid email or password");
   }
+});
+
+// ================= VERIFY EMAIL =================
+export const verifyEmail = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+
+  if (!token) {
+    res.status(400);
+    throw new Error("Verification token is required");
+  }
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  const user = await User.findOne({
+    emailVerificationToken: hashedToken,
+    emailVerificationExpires: { $gt: new Date() },
+  });
+
+  if (!user) {
+    res.status(400);
+    throw new Error("Invalid or expired verification link");
+  }
+
+  user.emailVerified = true;
+  user.status = "active";
+  user.emailVerificationToken = undefined;
+  user.emailVerificationExpires = undefined;
+  await user.save();
+
+  res.json({
+    success: true,
+    message: "Email verified successfully",
+  });
 });
 
 // ================= PROFILE =================
