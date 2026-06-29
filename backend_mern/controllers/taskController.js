@@ -52,9 +52,19 @@ const formatDateForCsv = (value, includeTime = false) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
 
-  return includeTime
-    ? date.toISOString().replace("T", " ").slice(0, 19)
-    : date.toISOString().slice(0, 10);
+  if (includeTime) {
+    const pad = (n) => String(n).padStart(2, "0");
+    const yyyy = date.getFullYear();
+    const mm = pad(date.getMonth() + 1);
+    const dd = pad(date.getDate());
+    const hh = pad(date.getHours());
+    const min = pad(date.getMinutes());
+    const ss = pad(date.getSeconds());
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+  } else {
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  }
 };
 
 const buildTasksCsv = (tasks) => {
