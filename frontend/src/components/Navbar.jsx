@@ -4,11 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { FaBell, FaTimes, FaSignOutAlt, FaCheckDouble, FaCircle } from "react-icons/fa";
 import { logout } from "../features/auth/authSlice";
 import {
-  getNotifications,
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
+  fetchNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
   dismissNotification,
+  clearNotifications,
 } from "../features/notifications/notificationSlice";
+import { socket } from "../socket";
 import TaskDetailModal from "./TaskCardDetails";
 
 export default function Navbar() {
@@ -17,19 +19,28 @@ export default function Navbar() {
   const dropdownRef = useRef(null);
 
   const { user } = useSelector((s) => s.auth);
-  const { list: notifications } = useSelector((s) => s.notifications);
+  const { items: notifications, unreadCount } = useSelector((s) => s.notifications);
 
   const [isOpen, setIsOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
 
   const isAdmin = user?.role === "admin";
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
+  // Initial load and socket connection on mount
   useEffect(() => {
     if (user) {
-      dispatch(getNotifications());
+      dispatch(fetchNotifications());
+      socket.connect();
+      socket.emit("join", user._id);
     }
   }, [dispatch, user]);
+
+  const handleLogout = () => {
+    socket.disconnect();
+    dispatch(clearNotifications());
+    dispatch(logout());
+    navigate("/");
+  };
 
   // Click outside to close notification dropdown
   useEffect(() => {
@@ -43,8 +54,8 @@ export default function Navbar() {
   }, []);
 
   const handleNotificationClick = async (notif) => {
-    if (!notif.isRead) {
-      dispatch(markNotificationAsRead(notif._id));
+    if (!notif.read) {
+      dispatch(markNotificationRead(notif._id));
     }
     if (notif.task && notif.task._id) {
       setSelectedTaskId(notif.task._id);
@@ -104,7 +115,7 @@ export default function Navbar() {
                   <h3 className="font-semibold text-sm text-gray-200">Notifications</h3>
                   {unreadCount > 0 && (
                     <button
-                      onClick={() => dispatch(markAllNotificationsAsRead())}
+                      onClick={() => dispatch(markAllNotificationsRead())}
                       className="text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 transition"
                     >
                       <FaCheckDouble className="text-[10px]" />
@@ -124,12 +135,12 @@ export default function Navbar() {
                         key={n._id}
                         onClick={() => handleNotificationClick(n)}
                         className={`p-4 flex gap-3 cursor-pointer hover:bg-gray-800/60 transition group relative ${
-                          !n.isRead ? "bg-indigo-950/20" : ""
+                          !n.read ? "bg-indigo-950/20" : ""
                         }`}
                       >
                         {/* Status/Unread Indicator */}
                         <div className="mt-1 flex-shrink-0">
-                          {!n.isRead ? (
+                          {!n.read ? (
                             <FaCircle className="text-xs text-indigo-500 mt-1 animate-pulse" />
                           ) : (
                             <FaCircle className="text-xs text-gray-700 mt-1" />

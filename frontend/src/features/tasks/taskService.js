@@ -1,7 +1,12 @@
 import api from "../../api/axios";
 
-export const getMyTasksAPI = async () => {
-  const res = await api.get("/tasks/my");
+export const getMyTasksAPI = async (params = {}) => {
+  const res = await api.get("/tasks/my", { params });
+  return res.data.data;
+};
+
+export const getAllTasksAPI = async (params = {}) => {
+  const res = await api.get("/tasks", { params });
   return res.data.data;
 };
 
@@ -30,11 +35,6 @@ export const getTaskByIdAPI = async (id) => {
 export const deleteTaskAPI = async (id) => {
   await api.delete(`/tasks/${id}`);
   return id;
-};
-
-export const getAllTasksAPI = async () => {
-  const res = await api.get("/tasks");
-  return res.data.data;
 };
 
 export const assignTaskAPI = async ({ taskId, userIds }) => {

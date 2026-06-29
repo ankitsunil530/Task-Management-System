@@ -83,6 +83,9 @@ app.use(cookieParser());
 if (isDev) {
   app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+    if (req.body && Object.keys(req.body).length > 0) {
+      console.log("📋 Request body:", JSON.stringify(req.body, null, 2));
+    }
     next();
   });
 }
@@ -128,13 +131,12 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   const status = err.status || (res.statusCode >= 400 ? res.statusCode : 500);
 
-  if (isDev) {
-    console.error("❌ ERROR:", err.message);
-    console.error(err.stack);
-  }
+  console.error("❌ ERROR:", err.message);
+  console.error(err.stack);
 
   res.status(status).json({
-    error: isDev ? err.message : "Internal Server Error",
+    success: false,
+    error: err.message || "Internal Server Error",
   });
 });
 

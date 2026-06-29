@@ -162,8 +162,9 @@ export const createTask = asyncHandler(async (req, res) => {
 
 export const getMyTasks = asyncHandler(async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
-  const limit = Math.min(Math.max(1, Number(req.query.limit) || 10), MAX_LIMIT);
+  const limit = Math.min(Math.max(1, Number(req.query.limit) || 50), MAX_LIMIT);
   const skip = (page - 1) * limit;
+  const { status, priority, sortBy, sortOrder, dueDateFilter } = req.query;
 
   const filter = {
     // Exclude soft-deleted tasks so a deleted task disappears from listings.
@@ -176,10 +177,57 @@ export const getMyTasks = asyncHandler(async (req, res) => {
     ],
   };
 
+  if (status && VALID_STATUS.includes(status)) filter.status = status;
+  if (priority && VALID_PRIORITY.includes(priority)) filter.priority = priority;
+
+  const now = new Date();
+  const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+  const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+  const startOfTomorrow = new Date(startOfDay);
+  startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+  const endOfTomorrow = new Date(startOfTomorrow);
+  endOfTomorrow.setHours(23, 59, 59, 999);
+  const startOfWeek = new Date(startOfDay);
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(endOfWeek.getDate() + 6);
+  endOfWeek.setHours(23, 59, 59, 999);
+
+  if (dueDateFilter) {
+    switch (dueDateFilter) {
+      case "overdue":
+        filter.deadline = { $lt: new Date(), $ne: null };
+        filter.status = { $ne: "done" };
+        break;
+      case "today":
+        filter.deadline = { $gte: startOfDay, $lte: endOfDay, $ne: null };
+        break;
+      case "tomorrow":
+        filter.deadline = { $gte: startOfTomorrow, $lte: endOfTomorrow, $ne: null };
+        break;
+      case "this-week":
+        filter.deadline = { $gte: startOfWeek, $lte: endOfWeek, $ne: null };
+        break;
+      case "no-deadline":
+        filter.deadline = null;
+        break;
+    }
+  }
+
+  let sortQuery = { createdAt: -1 };
+  if (sortBy === "deadline") {
+    sortQuery = { deadline: sortOrder === "asc" ? 1 : -1 };
+  } else if (sortBy === "priority") {
+    sortQuery = { 
+      priority: sortOrder === "asc" ? 1 : -1,
+      createdAt: -1 
+    };
+  }
+
   const [tasks, total] = await Promise.all([
     Task.find(filter)
       .populate("createdBy", "name email profilePicture")
-      .sort({ createdAt: -1 })
+      .sort(sortQuery)
       .skip(skip)
       .limit(limit),
     Task.countDocuments(filter),
@@ -226,7 +274,7 @@ export const exportMyTasks = asyncHandler(async (req, res) => {
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export const getAllTasks = asyncHandler(async (req, res) => {
-  let { status, priority, search, page = 1, limit = 5 } = req.query;
+  let { status, priority, search, sortBy, sortOrder, dueDateFilter, page = 1, limit = 5 } = req.query;
 
   limit = Math.min(Number(limit) || 5, MAX_LIMIT);
   page = Number(page) || 1;
@@ -237,13 +285,57 @@ export const getAllTasks = asyncHandler(async (req, res) => {
   if (priority && VALID_PRIORITY.includes(priority)) filter.priority = priority;
   if (search) filter.title = { $regex: escapeRegex(search), $options: "i" };
 
+  const now = new Date();
+  const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+  const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+  const startOfTomorrow = new Date(startOfDay);
+  startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+  const endOfTomorrow = new Date(startOfTomorrow);
+  endOfTomorrow.setHours(23, 59, 59, 999);
+  const startOfWeek = new Date(startOfDay);
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(endOfWeek.getDate() + 6);
+  endOfWeek.setHours(23, 59, 59, 999);
+
+  if (dueDateFilter) {
+    switch (dueDateFilter) {
+      case "overdue":
+        filter.deadline = { $lt: new Date(), $ne: null };
+        filter.status = { $ne: "done" };
+        break;
+      case "today":
+        filter.deadline = { $gte: startOfDay, $lte: endOfDay, $ne: null };
+        break;
+      case "tomorrow":
+        filter.deadline = { $gte: startOfTomorrow, $lte: endOfTomorrow, $ne: null };
+        break;
+      case "this-week":
+        filter.deadline = { $gte: startOfWeek, $lte: endOfWeek, $ne: null };
+        break;
+      case "no-deadline":
+        filter.deadline = null;
+        break;
+    }
+  }
+
+  let sortQuery = { createdAt: -1 };
+  if (sortBy === "deadline") {
+    sortQuery = { deadline: sortOrder === "asc" ? 1 : -1 };
+  } else if (sortBy === "priority") {
+    sortQuery = { 
+      priority: sortOrder === "asc" ? 1 : -1,
+      createdAt: -1 
+    };
+  }
+
   const skip = (page - 1) * limit;
 
   const [tasks, total] = await Promise.all([
     Task.find(filter)
       .populate("assignedTo", "name email profilePicture")
       .populate("createdBy", "name email profilePicture")
-      .sort({ createdAt: -1 })
+      .sort(sortQuery)
       .skip(skip)
       .limit(limit),
     Task.countDocuments(filter),

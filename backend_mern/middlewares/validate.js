@@ -6,8 +6,10 @@ export const validate = (schema) => (req, res, next) => {
     next();
   } catch (error) {
     if (error instanceof ZodError) {
+      const firstError = error.issues[0]?.message || "Invalid request data";
       return res.status(400).json({
         success: false,
+        message: firstError,
         errors: error.issues.map((e) => e.message),
       });
     }
@@ -16,7 +18,7 @@ export const validate = (schema) => (req, res, next) => {
     console.error("Validation error:", error);
     return res.status(400).json({
       success: false,
-      error: "Invalid request data",
+      message: "Invalid request data",
     });
   }
 };
