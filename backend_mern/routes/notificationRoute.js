@@ -1,7 +1,7 @@
 import express from "express";
 import protect from "../middlewares/authWebToken.js";
 import {
-  getNotifications,
+  getMyNotifications,
   markAsRead,
   markAllAsRead,
   deleteNotification,
@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.use(protect);
 
-router.get("/", getNotifications);
+router.get("/", getMyNotifications);
 router.patch("/read-all", markAllAsRead);
 router.patch("/:id/read", markAsRead);
 router.delete("/:id", deleteNotification);

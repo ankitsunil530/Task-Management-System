@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
 import { getMyTasks } from "../features/tasks/taskSlice";
 import { logout, setProfilePicture } from "../features/auth/authSlice";
+import { clearNotifications } from "../features/notifications/notificationSlice";
+import { socket } from "../socket";
 import { exportMyTasksCSVAPI } from "../features/tasks/taskService";
 import { updateProfilePictureAPI } from "../features/auth/authService";
 import { uploadToCloudinary } from "../utils/cloudinary";
@@ -14,6 +17,7 @@ import TaskCard from "../components/TaskCard";
 import CreateTaskModal from "../components/CreateTaskModal";
 import Navbar from "../components/Navbar";
 import KanbanBoard from "./KanbanBoard";
+import CalendarView from "../components/CalendarView";
 
 // Charts
 import StatusPieChart from "../components/charts/StatusPieChart";
@@ -22,21 +26,35 @@ import OverdueChart from "../components/charts/OverdueChart";
 
 export default function UserDashboard() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const { list, isLoading } = useSelector((s) => s.tasks);
   const { user } = useSelector((s) => s.auth);
 
   const [openTaskModal, setOpenTaskModal] = useState(false);
-  const [view, setView] = useState("list"); // list | kanban
+  const [view, setView] = useState("list"); // list | kanban | calendar
   const [isExporting, setIsExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [filters, setFilters] = useState({
+    status: "",
+    priority: "",
+    dueDateFilter: "",
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
 
   const notifiedRef = useRef(new Set());
 
   /* ================= FETCH TASKS ================= */
   useEffect(() => {
-    dispatch(getMyTasks());
-  }, [dispatch]);
+    const params = {};
+    if (filters.status) params.status = filters.status;
+    if (filters.priority) params.priority = filters.priority;
+    if (filters.dueDateFilter) params.dueDateFilter = filters.dueDateFilter;
+    if (filters.sortBy) params.sortBy = filters.sortBy;
+    if (filters.sortOrder) params.sortOrder = filters.sortOrder;
+    dispatch(getMyTasks(params));
+  }, [dispatch, filters]);
 
   /* ================= NOTIFICATIONS ================= */
   useEffect(() => {
@@ -55,10 +73,10 @@ export default function UserDashboard() {
     });
   }, [list]);
 
-  /* ================= PROFILE IMAGE ================= */
-  const handleProfileUpload = (e) => {
   /* ================= LOGOUT ================= */
   const handleLogout = () => {
+    socket.disconnect();
+    dispatch(clearNotifications());
     dispatch(logout());
     navigate("/");
   };
@@ -227,6 +245,74 @@ export default function UserDashboard() {
               />
             </div>
 
+            {/* ===== FILTERS ===== */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <select
+                value={filters.status}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, status: e.target.value }))
+                }
+                className="px-3 py-1 text-sm rounded bg-gray-800 border border-gray-700 text-white"
+              >
+                <option value="">All Statuses</option>
+                <option value="todo">To Do</option>
+                <option value="in-progress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+
+              <select
+                value={filters.priority}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, priority: e.target.value }))
+                }
+                className="px-3 py-1 text-sm rounded bg-gray-800 border border-gray-700 text-white"
+              >
+                <option value="">All Priorities</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+
+              <select
+                value={filters.dueDateFilter}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, dueDateFilter: e.target.value }))
+                }
+                className="px-3 py-1 text-sm rounded bg-gray-800 border border-gray-700 text-white"
+              >
+                <option value="">All Dates</option>
+                <option value="overdue">Overdue</option>
+                <option value="today">Today</option>
+                <option value="tomorrow">Tomorrow</option>
+                <option value="this-week">This Week</option>
+                <option value="no-deadline">No Deadline</option>
+              </select>
+
+              <select
+                value={filters.sortBy}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, sortBy: e.target.value }))
+                }
+                className="px-3 py-1 text-sm rounded bg-gray-800 border border-gray-700 text-white"
+              >
+                <option value="createdAt">Sort by Created</option>
+                <option value="deadline">Sort by Deadline</option>
+                <option value="priority">Sort by Priority</option>
+              </select>
+
+              <button
+                onClick={() =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    sortOrder: prev.sortOrder === "asc" ? "desc" : "asc",
+                  }))
+                }
+                className="px-3 py-1 text-sm rounded bg-gray-800 hover:bg-gray-700 text-white"
+              >
+                {filters.sortOrder === "asc" ? "↑ Asc" : "↓ Desc"}
+              </button>
+            </div>
+
             {/* ===== HEADER + ACTIONS ===== */}
             <div className="flex flex-wrap justify-between items-center gap-3">
               <h2 className="text-xl font-semibold">
@@ -263,6 +349,17 @@ export default function UserDashboard() {
                 >
                   Kanban View
                 </button>
+
+                <button
+                  onClick={() => setView("calendar")}
+                  className={`px-3 py-1 text-sm rounded ${
+                    view === "calendar"
+                      ? "bg-indigo-600"
+                      : "bg-gray-800 hover:bg-gray-700"
+                  }`}
+                >
+                  Calendar View
+                </button>
               </div>
             </div>
 
@@ -279,8 +376,10 @@ export default function UserDashboard() {
                   ))}
                 </div>
               )
-            ) : (
+            ) : view === "kanban" ? (
               <KanbanBoard />
+            ) : (
+              <CalendarView tasks={list} />
             )}
 
           </div>

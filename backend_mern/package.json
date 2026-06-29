@@ -22,5 +22,8 @@
     "mongoose": "7.5.0",
     "socket.io": "^4.8.3",
     "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.2.0"
   }
 }
