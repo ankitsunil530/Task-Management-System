@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { FaBars, FaTimes } from "react-icons/fa";
+import { FaBars, FaTimes, FaSun, FaMoon } from "react-icons/fa";
+import { useSelector, useDispatch } from "react-redux";
+import { toggleTheme } from "../features/theme/themeSlice";
 
 function Header() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const dispatch = useDispatch();
+  const { mode } = useSelector((state) => state.theme);
 
   const links = [
     { name: "Home", path: "/" },
@@ -14,7 +18,7 @@ function Header() {
   ];
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-[#0B1120]/80 backdrop-blur-md border-b border-slate-800">
+    <header className="fixed top-0 left-0 w-full z-50 bg-slate-900/80 dark:bg-[#0B1120]/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
         <div
@@ -26,7 +30,7 @@ function Header() {
             alt="logo"
             className="h-9 w-9 rounded-full"
           />
-          <span className="text-white text-xl font-bold tracking-wide">
+          <span className="text-slate-900 dark:text-white text-xl font-bold tracking-wide">
             TaskPhiles
           </span>
         </div>
@@ -51,6 +55,14 @@ function Header() {
 
         {/* Actions */}
         <div className="hidden md:flex items-center gap-4">
+          {/* Theme Toggle */}
+          <button
+            onClick={() => dispatch(toggleTheme())}
+            className="p-2 rounded-lg border border-slate-700 text-slate-300 hover:text-blue-400 hover:bg-slate-800 transition-all duration-300"
+            title="Toggle theme"
+          >
+            {mode === "dark" ? <FaSun /> : <FaMoon />}
+          </button>
   <button
     onClick={() => navigate("/login")}
     className="
@@ -120,6 +132,17 @@ function Header() {
           ))}
 
           <div className="pt-4 flex flex-col gap-3">
+            {/* Mobile Theme Toggle */}
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                dispatch(toggleTheme());
+              }}
+              className="w-full py-2 rounded-lg border border-slate-700 text-slate-200 transition-all duration-300 flex items-center justify-center gap-2"
+            >
+              {mode === "dark" ? <FaSun /> : <FaMoon />}
+              Toggle Theme
+            </button>
             <button
   onClick={() => {
     setIsOpen(false);

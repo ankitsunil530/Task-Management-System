@@ -31,6 +31,16 @@ import ProtectedRoute from "./components/ProtectedRoute";
 function App() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { mode } = useSelector((state) => state.theme);
+
+  /* ================= THEME ================= */
+  useEffect(() => {
+    if (mode === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [mode]);
 
   /* ================= SOCKET CONNECTION ================= */
 
