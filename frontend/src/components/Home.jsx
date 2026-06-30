@@ -4,22 +4,22 @@ function Home() {
   const navigate = useNavigate();
 
   return (
-    <main className="bg-[#0B1120] text-slate-200">
+    <main className="bg-slate-50 dark:bg-[#0B1120]">
       {/* HERO */}
       <section className="max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center">
         <div>
-          <span className="inline-block mb-4 px-4 py-1 text-sm font-semibold rounded-full bg-blue-900/40 text-blue-400">
+          <span className="inline-block mb-4 px-4 py-1 text-sm font-semibold rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
             🚀 Task Management Simplified
           </span>
 
-          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight text-white">
+          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight text-slate-900 dark:text-white">
             Manage work. <br />
-            <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-400 dark:to-purple-500 bg-clip-text text-transparent">
               Ship faster.
             </span>
           </h1>
 
-          <p className="mt-6 text-lg text-slate-400 max-w-xl">
+          <p className="mt-6 text-lg text-slate-600 dark:text-slate-400 max-w-xl">
             TaskPhiles helps teams organize tasks, collaborate efficiently, and
             track progress — all in one powerful platform.
           </p>
@@ -65,8 +65,8 @@ function Home() {
       </section>
 
       {/* TRUST */}
-      <section className="py-14 bg-[#0F172A] border-y border-slate-800">
-  <p className="text-center text-slate-400 mb-8 text-lg">
+      <section className="py-14 bg-slate-100 dark:bg-[#0F172A] border-y border-slate-200 dark:border-slate-800">
+  <p className="text-center text-slate-600 dark:text-slate-400 mb-8 text-lg">
     Trusted by students & developers building modern projects
   </p>
 
@@ -78,8 +78,8 @@ function Home() {
         px-6 py-4
         rounded-xl
         border border-blue-500/30
-        bg-slate-900/50
-        text-slate-300
+        bg-slate-50 dark:bg-slate-900/50
+        text-slate-800 dark:text-slate-300
         font-semibold
         cursor-pointer
         shadow-lg shadow-blue-500/10
@@ -87,7 +87,7 @@ function Home() {
         hover:scale-105
         hover:-translate-y-1
         hover:border-blue-500
-        hover:text-blue-400
+        hover:text-blue-600 dark:hover:text-blue-400
         hover:shadow-xl hover:shadow-blue-500/30
       "
     >
@@ -99,7 +99,7 @@ function Home() {
 
       {/* FEATURES */}
       <section className="max-w-7xl mx-auto px-6 py-24">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-14 text-white">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-14 text-slate-900 dark:text-white">
           Everything you need to stay productive
         </h2>
 
@@ -124,10 +124,10 @@ function Home() {
     <div
       key={i}
       className="
-        bg-[#111827]
+        bg-white dark:bg-[#111827]
         p-8
         rounded-2xl
-        border border-blue-500/20
+        border border-slate-200 dark:border-blue-500/20
         shadow-[0_0_20px_rgba(59,130,246,0.1)]
         transition-all duration-300
         hover:-translate-y-2
@@ -140,11 +140,11 @@ function Home() {
         {f.icon}
       </div>
 
-      <h3 className="text-xl font-semibold mb-3 text-white">
+      <h3 className="text-xl font-semibold mb-3 text-slate-900 dark:text-white">
         {f.title}
       </h3>
 
-      <p className="text-slate-400">
+      <p className="text-slate-600 dark:text-slate-400">
         {f.desc}
       </p>
     </div>
@@ -153,12 +153,12 @@ function Home() {
       </section>
 
       {/* CTA */}
-      <section className="bg-[#111827] border-t border-slate-800 py-20 text-center px-6">
-  <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
+      <section className="bg-slate-100 dark:bg-[#111827] border-t border-slate-200 dark:border-slate-800 py-20 text-center px-6">
+  <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-900 dark:text-white">
     Start organizing your work today
   </h2>
 
-  <p className="text-lg mb-8 text-slate-400">
+  <p className="text-lg mb-8 text-slate-600 dark:text-slate-400">
     Free to use. No credit card required.
   </p>
 

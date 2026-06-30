@@ -6,7 +6,7 @@ import { register, resetAuthState } from "../features/auth/authSlice";
 export default function Register() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, isSuccess } = useSelector((s) => s.auth);
+  const { isLoading, isSuccess, isError, message } = useSelector((s) => s.auth);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -17,7 +17,7 @@ export default function Register() {
 
   useEffect(() => {
     if (isSuccess) {
-      navigate("/login");
+      navigate("/dashboard");
       dispatch(resetAuthState());
     }
   }, [isSuccess, navigate, dispatch]);
@@ -86,6 +86,13 @@ export default function Register() {
             onChange={onChange}
             required
           />
+
+          {/* Error Message */}
+          {isError && (
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-2 rounded-lg">
+              {message || "Registration failed"}
+            </div>
+          )}
 
           <button
   disabled={isLoading}

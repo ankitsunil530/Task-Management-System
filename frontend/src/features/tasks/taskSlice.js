@@ -21,9 +21,9 @@ const extractData = (res) => res?.data || res;
 
 export const getMyTasks = createAsyncThunk(
   "tasks/getMy",
-  async (_, thunkAPI) => {
+  async (params = {}, thunkAPI) => {
     try {
-      const res = await getMyTasksAPI();
+      const res = await getMyTasksAPI(params);
       return extractData(res);
     } catch {
       return thunkAPI.rejectWithValue("Failed to fetch tasks");
@@ -69,9 +69,9 @@ export const deleteTask = createAsyncThunk(
 
 export const getAllTasks = createAsyncThunk(
   "tasks/getAll",
-  async (_, thunkAPI) => {
+  async (params = {}, thunkAPI) => {
     try {
-      const res = await getAllTasksAPI();
+      const res = await getAllTasksAPI(params);
       return extractData(res);
     } catch {
       return thunkAPI.rejectWithValue("Failed to load tasks");

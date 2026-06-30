@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 import { loginAPI, registerAPI } from "./authService";
+import { socket } from "../../socket";
+import { clearNotifications } from "../notifications/notificationSlice";
 
 // Decode a JWT's `exp` claim (standard base64url JSON — no library needed) and
 // check it against the current time. Returns false for a missing, malformed, or
@@ -95,6 +97,10 @@ const authSlice = createSlice({
         localStorage.setItem("user", JSON.stringify(action.payload));
         localStorage.setItem("token", action.payload.token);
 
+        // Connect socket and join user's room
+        socket.connect();
+        socket.emit("join", action.payload._id);
+
         toast.success("Logged in successfully 🎉");
       })
 
@@ -112,6 +118,14 @@ const authSlice = createSlice({
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
+        state.user = action.payload;
+
+        localStorage.setItem("user", JSON.stringify(action.payload));
+        localStorage.setItem("token", action.payload.token);
+
+        // Connect socket and join user's room
+        socket.connect();
+        socket.emit("join", action.payload._id);
 
         toast.success("Account created successfully 🎉");
       })

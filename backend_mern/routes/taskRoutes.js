@@ -1,4 +1,4 @@
-﻿import express from "express";
+import express from "express";
 import protect from "../middlewares/authWebToken.js";
 import admin from "../middlewares/adminMiddleware.js";
 import { validate } from "../middlewares/validate.js";
@@ -14,15 +14,13 @@ import {
   restoreTask,
   assignTask,
   getTaskStats,
-  addComment,        // 🔥 NEW
-  toggleWatcher,     // 🔥 NEW
+  addComment,
+  toggleWatcher,
   getComments,
-  addComment,        //  NEW
-  editComment,       //  NEW
-  toggleWatcher,     //  NEW
-  addSubtask,        //  NEW
-  toggleSubtask,     //  NEW
-  deleteSubtask,     //  NEW
+  editComment,
+  addSubtask,
+  toggleSubtask,
+  deleteSubtask,
 } from "../controllers/taskController.js";
 
 import {

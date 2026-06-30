@@ -8,7 +8,7 @@ import {
   socketTaskDeleted,
   socketCommentAdded,
 } from "./features/tasks/taskSlice";
-import { socketNotificationReceived } from "./features/notifications/notificationSlice";
+import { notificationReceived } from "./features/notifications/notificationSlice";
 
 // Public pages
 import Home from "./components/Home";
@@ -28,12 +28,19 @@ import AdminDashboard from "./pages/AdminDashboard";
 // Auth guard
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// Notification center (renders for logged-in users)
-import NotificationBell from "./components/NotificationBell";
-
 function App() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { mode } = useSelector((state) => state.theme);
+
+  /* ================= THEME ================= */
+  useEffect(() => {
+    if (mode === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [mode]);
 
   /* ================= SOCKET CONNECTION ================= */
 
@@ -75,7 +82,7 @@ function App() {
       // 🔥 NEW: notification event (mentions/watchers)
       socket.on("notification", (data) => {
         console.log("🔔 Notification:", data);
-        dispatch(socketNotificationReceived(data));
+        dispatch(notificationReceived(data));
       });
     }
 
@@ -96,7 +103,6 @@ function App() {
 
   return (
     <>
-      {user && <NotificationBell />}
       <Routes>
         {/* ========== PUBLIC ROUTES ========== */}
         <Route path="/" element={<Layout />}>

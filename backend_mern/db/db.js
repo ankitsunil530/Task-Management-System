@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
+import { MongoMemoryServer } from "mongodb-memory-server";
 
-
-
+let mongoServer;
 
 const connectDB = async () => {
   const maxRetries = 5;
@@ -9,7 +9,18 @@ const connectDB = async () => {
 
   const connect = async () => {
     try {
-      const conn = await mongoose.connect(process.env.MONGO_URI, {
+      let mongoUri = process.env.MONGO_URI;
+
+      // If no MONGO_URI or in development, use in-memory MongoDB
+      if (!mongoUri || process.env.NODE_ENV === "development") {
+        if (!mongoServer) {
+          mongoServer = await MongoMemoryServer.create();
+          mongoUri = mongoServer.getUri();
+          console.log(`🗄️ Using in-memory MongoDB at: ${mongoUri}`);
+        }
+      }
+
+      const conn = await mongoose.connect(mongoUri, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
         serverSelectionTimeoutMS: 10000,
@@ -35,5 +46,22 @@ const connectDB = async () => {
 
   return connect();
 };
+
+// Gracefully stop in-memory MongoDB on shutdown
+process.on("SIGTERM", async () => {
+  if (mongoServer) {
+    await mongoServer.stop();
+    console.log("🗄️ In-memory MongoDB stopped");
+  }
+  process.exit(0);
+});
+
+process.on("SIGINT", async () => {
+  if (mongoServer) {
+    await mongoServer.stop();
+    console.log("🗄️ In-memory MongoDB stopped");
+  }
+  process.exit(0);
+});
 
 export default connectDB;
