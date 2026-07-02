@@ -3,6 +3,7 @@ import rateLimit from "express-rate-limit";
 import {
   registerUser,
   loginUser,
+  verifyEmail,
   logoutUser,
   userProfile,
   updateProfilePicture,
@@ -33,6 +34,7 @@ const authLimiter = rateLimit({
 // 🔐 Auth
 router.post("/register", authLimiter, validate(registerAuthSchema), registerUser);
 router.post("/login", authLimiter, validate(loginAuthSchema), loginUser);
+router.get("/verify-email/:token", verifyEmail);
 router.post("/logout", protect, logoutUser);
 
 // 👤 User

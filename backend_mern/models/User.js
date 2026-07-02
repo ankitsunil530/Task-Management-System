@@ -24,10 +24,17 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "user"],
       default: "user",
     },
-    status: {
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationToken: {
       type: String,
-      enum: ["active", "inactive"],
-      default: "active",
+      select: false,
+    },
+    emailVerificationExpires: {
+      type: Date,
+      select: false,
     },
     profilePicture: {
       type: String,
