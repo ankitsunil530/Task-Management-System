@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import { ensureVerifiedUser } from "../utils/ensureVerifiedUser.js";
 
 const protect = async (req, res, next) => {
   let token;
@@ -35,16 +36,12 @@ const protect = async (req, res, next) => {
     }
 
     // 5️⃣ Block users who are not active even if their JWT is valid
-    if (req.user.status !== "active" || req.user.emailVerified === false) {
-      return res.status(403).json({
-        message: "Email not verified. Please check your inbox.",
-      });
-    } 
+    ensureVerifiedUser(req.user);
 
     next();
   } catch (error) {
-    return res.status(401).json({
-      message: "Not authorized, token failed",
+    return res.status(error.status || 401).json({
+      message: error.status ? error.message : "Not authorized, token failed",
     });
   }
 };

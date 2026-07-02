@@ -2,6 +2,8 @@ import asyncHandler from "express-async-handler";
 import crypto from "crypto";
 import User from "../models/User.js";
 import Task from "../models/Task.js";
+import { ensureVerifiedUser } from "../utils/ensureVerifiedUser.js";
+import getBaseUrl from "../utils/getBaseUrl.js";
 import generateToken from "../utils/generateToken.js";
 import { sendVerificationEmail } from "../utils/sendEmail.js";
 
@@ -46,13 +48,12 @@ export const registerUser = asyncHandler(async (req, res) => {
     name,
     email: normalizedEmail,
     password,
-    status: "inactive",
     emailVerified: false,
     emailVerificationToken: hashedVerificationToken,
     emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
   });
 
-  const baseUrl = (process.env.BACKEND_URL || `${req.protocol}://${req.get("host")}`).replace(/\/$/, "");
+  const baseUrl = getBaseUrl(req);
   const verificationUrl = `${baseUrl}/api/user/verify-email/${rawVerificationToken}`;
 
   try {
@@ -102,10 +103,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email: normalizedEmail });
 
   if (user && (await user.matchPassword(password))) {
-    if (user.status !== "active" || user.emailVerified === false) {
-      res.status(403);
-      throw new Error("Email not verified. Please check your inbox.");
-    }
+    ensureVerifiedUser(user);
 
     res.json({
       success: true,
@@ -146,7 +144,6 @@ export const verifyEmail = asyncHandler(async (req, res) => {
   }
 
   user.emailVerified = true;
-  user.status = "active";
   user.emailVerificationToken = undefined;
   user.emailVerificationExpires = undefined;
   await user.save();

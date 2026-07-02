@@ -18,12 +18,26 @@ const createTransporter = () => {
   });
 };
 
-export const sendVerificationEmail = async ({ to, name, verificationUrl }) => {
+export const sendEmail = async ({ to, subject, text, html }) => {
   const transporter = createTransporter();
-  const { EMAIL_FROM } = process.env; 
+  const { EMAIL_FROM } = process.env;
 
   const info = await transporter.sendMail({
     from: EMAIL_FROM,
+    to,
+    subject,
+    text,
+    html,
+  });
+
+  return {
+    messageId: info.messageId,
+    previewUrl: nodemailer.getTestMessageUrl(info),
+  };
+};
+
+export const sendVerificationEmail = ({ to, name, verificationUrl }) => {
+  return sendEmail({
     to,
     subject: "Verify your email address",
     text: `Hi ${name}, please verify your email address by visiting: ${verificationUrl}`,
@@ -34,9 +48,4 @@ export const sendVerificationEmail = async ({ to, name, verificationUrl }) => {
       <p>If you did not create this account, you can ignore this email.</p>
     `,
   });
-
-  return {
-    messageId: info.messageId,
-    previewUrl: nodemailer.getTestMessageUrl(info),
-  };
 };
